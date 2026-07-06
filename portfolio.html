@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portfolio — Claire Creative, Paris</title>
+  <meta name="description" content="Portfolio de Claire Creative : mariages, réceptions, scénographie, intérieurs, vitrines et set design.">
+  <link rel="icon" href="assets/logo-yeux.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Archivo:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header class="scrolled">
+    <a class="brand" href="index.html">
+      <span class="eyes nav-eyes"></span>
+      <span class="wordmark">CLAIRE CREATIVE</span>
+    </a>
+    <nav class="main">
+      <a href="index.html">Accueil</a>
+      <a href="portfolio.html" class="active">Portfolio</a>
+      <a href="about.html">À propos</a>
+      <a href="index.html#contact">Contact</a>
+    </nav>
+    <button class="burger" aria-label="Menu"><span></span><span></span><span></span></button>
+  </header>
+
+  <section class="page-hero">
+    <h1>Port<em>folio</em></h1>
+    <p class="lead">Une sélection de projets — chaque production est pensée avec une direction claire, une exécution précise et une attention portée à l'expérience globale.</p>
+  </section>
+
+  <div class="filters">
+    <button data-cat="all" class="active">Tout</button>
+    <button data-cat="weddings">Mariages</button>
+    <button data-cat="parties">Réceptions</button>
+    <button data-cat="scenography">Scénographie</button>
+    <button data-cat="interiors">Intérieurs</button>
+    <button data-cat="window-display">Vitrines</button>
+    <button data-cat="set-design">Set design</button>
+  </div>
+
+  <div class="masonry" id="masonry"></div>
+
+  <div id="lightbox" role="dialog" aria-label="Visionneuse d'images">
+    <button class="close" aria-label="Fermer">✕</button>
+    <button class="prev" aria-label="Précédent">←</button>
+    <img src="" alt="">
+    <button class="next" aria-label="Suivant">→</button>
+    <span class="count"></span>
+  </div>
+
+  <footer class="contact" id="contact">
+    <p class="cta-label">Un projet, un lieu, une occasion —</p>
+    <a class="mail" href="mailto:claire@clairecreative.fr">claire@<br>clairecreative.fr</a>
+    <div class="grid">
+      <div class="col"><p>Studio</p>Claire Creative<br>Paris, France</div>
+      <div class="col"><p>Contact</p><a href="mailto:claire@clairecreative.fr">claire@clairecreative.fr</a><br><br><a href="tel:+33644366432">+33 6 44 36 64 32</a></div>
+      <div class="col"><p>Suivre</p><a href="https://www.instagram.com/clairecreative.fr" target="_blank" rel="noopener">Instagram</a></div>
+      <div class="col"><p>Navigation</p><a href="portfolio.html">Portfolio</a><br><br><a href="about.html">À propos</a></div>
+    </div>
+    <div class="legal">
+      <span>© Claire Creative — Claire Deroo</span>
+      <span>Direction artistique &amp; production événementielle, Paris</span>
+    </div>
+  </footer>
+
+  <script src="js/gallery-data.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
