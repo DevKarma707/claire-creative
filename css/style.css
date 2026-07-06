@@ -291,6 +291,50 @@ section { padding: 12vh 4vw; }
 .masonry img { width: 100%; transition: transform 0.7s var(--ease); }
 .masonry figure:hover img { transform: scale(1.04); }
 
+/* ---------- portfolio "field" (scroll infini + hover, façon villaeugenie) ---------- */
+body.has-field { overflow: hidden; height: 100svh; }
+#field {
+  position: fixed; inset: 0; overflow: hidden;
+  cursor: grab; touch-action: none;
+  transition: opacity 0.35s ease;
+}
+#field:active { cursor: grabbing; }
+.fcard {
+  position: absolute; top: 0; left: 0;
+  will-change: transform;
+  transition: filter 0.45s ease;
+  user-select: none;
+}
+.fcard img {
+  width: 100%; height: 100%; object-fit: cover;
+  pointer-events: none;
+}
+.fcard-label {
+  position: absolute; left: 0; top: calc(100% + 8px);
+  font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--ink-soft); white-space: nowrap;
+}
+#field.dimmed .fcard { filter: blur(7px); }
+#field.dimmed .fcard.hot { filter: none; z-index: 10; }
+#field.dimmed .fcard .fcard-label { opacity: 0; }
+#field-title {
+  display: none; position: fixed; z-index: 20;
+  transform: translate(-50%, -130%);
+  pointer-events: none;
+  font-family: var(--serif); font-weight: 600;
+  font-size: 34px; line-height: 1.05;
+  text-align: center; text-transform: uppercase;
+  color: #fff; mix-blend-mode: difference;
+  width: 480px;
+}
+.filters--field {
+  position: fixed; top: 76px; left: 0; right: 0; z-index: 30;
+  padding: 10px 4vw;
+  pointer-events: none;
+}
+.filters--field button { pointer-events: auto; background: var(--cream); }
+.filters--field button.active { background: var(--ink); }
+
 /* ---------- lightbox ---------- */
 #lightbox {
   position: fixed; inset: 0; z-index: 2000;
