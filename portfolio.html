@@ -8,34 +8,31 @@
   <link rel="icon" href="assets/logo-yeux.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Archivo:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="has-field">
 
-  <header class="scrolled">
+  <header>
     <a class="brand" href="index.html">
       <span class="eyes nav-eyes"></span>
-      <span class="wordmark">CLAIRE CREATIVE</span>
+      <span class="wordmark">Claire<br>Creative</span>
     </a>
     <nav class="main">
-      <a href="index.html">Accueil</a>
-      <a href="portfolio.html" class="active">Portfolio</a>
-      <a href="about.html">À propos</a>
-      <a href="index.html#contact">Contact</a>
+      <ul class="cats" id="cats-nav">
+        <li data-cat="weddings"><a href="portfolio.html?cat=weddings">Mariages<span class="x">✕</span></a></li>
+        <li data-cat="parties"><a href="portfolio.html?cat=parties">Réceptions<span class="x">✕</span></a></li>
+        <li data-cat="scenography"><a href="portfolio.html?cat=scenography">Scénographie<span class="x">✕</span></a></li>
+        <li data-cat="interiors"><a href="portfolio.html?cat=interiors">Intérieurs<span class="x">✕</span></a></li>
+        <li data-cat="window-display"><a href="portfolio.html?cat=window-display">Vitrines<span class="x">✕</span></a></li>
+        <li data-cat="set-design"><a href="portfolio.html?cat=set-design">Set design<span class="x">✕</span></a></li>
+      </ul>
+      <ul class="secondary">
+        <li><a href="about.html">À propos</a></li>
+        <li><a href="index.html#contact">Contact</a></li>
+      </ul>
     </nav>
-    <button class="burger" aria-label="Menu"><span></span><span></span><span></span></button>
   </header>
-
-  <div class="filters filters--field">
-    <button data-cat="all" class="active">Tout</button>
-    <button data-cat="weddings">Mariages</button>
-    <button data-cat="parties">Réceptions</button>
-    <button data-cat="scenography">Scénographie</button>
-    <button data-cat="interiors">Intérieurs</button>
-    <button data-cat="window-display">Vitrines</button>
-    <button data-cat="set-design">Set design</button>
-  </div>
 
   <div id="field" aria-label="Portfolio — faire défiler pour explorer"></div>
   <div id="field-title" aria-hidden="true"></div>

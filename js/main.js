@@ -39,28 +39,6 @@ window.addEventListener("load", () => {
   if (loader) setTimeout(() => loader.classList.add("done"), 700);
 });
 
-// ---- header scroll state ----
-const header = document.querySelector("header");
-window.addEventListener("scroll", () => {
-  header.classList.toggle("scrolled", window.scrollY > 40);
-}, { passive: true });
-
-// ---- mobile nav ----
-const burger = document.querySelector(".burger");
-const nav = document.querySelector("nav.main");
-if (burger) {
-  burger.addEventListener("click", () => {
-    burger.classList.toggle("open");
-    nav.classList.toggle("open");
-  });
-  nav.querySelectorAll("a").forEach((a) =>
-    a.addEventListener("click", () => {
-      burger.classList.remove("open");
-      nav.classList.remove("open");
-    })
-  );
-}
-
 // ---- reveal on scroll ----
 const io = new IntersectionObserver(
   (entries) => entries.forEach((e) => e.isIntersecting && e.target.classList.add("in")),

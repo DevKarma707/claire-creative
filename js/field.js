@@ -196,28 +196,34 @@
     if (e.key === "ArrowRight") showLb(lbIdx + 1);
   });
 
-  // ---- filtres catégories ----
-  const params = new URLSearchParams(location.search);
-  const initial = params.get("cat") || "all";
-  document.querySelectorAll(".filters button").forEach((b) => {
-    if (b.dataset.cat === initial) {
-      document.querySelector(".filters .active")?.classList.remove("active");
-      b.classList.add("active");
-    }
-    b.addEventListener("click", () => {
-      document.querySelector(".filters .active")?.classList.remove("active");
-      b.classList.add("active");
+  // ---- filtres : le menu de catégories du header (façon villaeugenie) ----
+  // Clic sur une catégorie : filtre le champ, les autres mots disparaissent, un ✕
+  // apparaît. Re-clic sur la catégorie active : retour à tout.
+  const catsNav = document.getElementById("cats-nav");
+  let activeCat = new URLSearchParams(location.search).get("cat") || "all";
+
+  function setNavState(cat) {
+    catsNav.classList.toggle("has-category", cat !== "all");
+    catsNav.querySelectorAll("li").forEach((li) =>
+      li.classList.toggle("is-active", li.dataset.cat === cat)
+    );
+  }
+
+  catsNav.querySelectorAll("a").forEach((a) => {
+    a.addEventListener("click", (e) => {
+      e.preventDefault();
+      const li = a.closest("li");
+      activeCat = li.classList.contains("is-active") ? "all" : li.dataset.cat;
+      setNavState(activeCat);
       field.style.opacity = 0;
-      setTimeout(() => { build(b.dataset.cat); field.style.opacity = 1; }, 350);
-      history.replaceState(null, "", b.dataset.cat === "all" ? "portfolio.html" : `portfolio.html?cat=${b.dataset.cat}`);
+      setTimeout(() => { build(activeCat); field.style.opacity = 1; }, 350);
+      history.replaceState(null, "", activeCat === "all" ? "portfolio.html" : `portfolio.html?cat=${activeCat}`);
     });
   });
 
-  window.addEventListener("resize", () => {
-    const active = document.querySelector(".filters .active")?.dataset.cat || "all";
-    build(active);
-  });
+  window.addEventListener("resize", () => build(activeCat));
 
-  build(initial);
+  setNavState(activeCat);
+  build(activeCat);
   tick();
 })();
