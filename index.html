@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Claire Creative — Studio de direction artistique &amp; production événementielle, Paris</title>
+  <title>Claire Creative — Direction artistique &amp; production événementielle, Paris</title>
   <meta name="description" content="Claire Creative est un studio de direction artistique et de production événementielle basé à Paris, fondé par Claire Deroo. Mariages, dîners privés, lancements de marque, scénographie.">
   <link rel="icon" href="assets/logo-yeux.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body class="has-field">
 
   <div id="loader">
     <div class="eyes"></div>
@@ -21,189 +21,40 @@
   <header>
     <a class="brand" href="index.html">
       <span class="eyes nav-eyes"></span>
-      <span class="wordmark">Claire<br>Creative</span>
+      <span class="brand-text">
+        <span class="wordmark">Claire Creative</span>
+        <span class="tagline">Direction artistique<br>&amp; production</span>
+      </span>
     </a>
     <nav class="main">
       <ul class="cats" id="cats-nav">
-        <li data-cat="weddings"><a href="portfolio.html?cat=weddings">Mariages<span class="x">✕</span></a></li>
-        <li data-cat="parties"><a href="portfolio.html?cat=parties">Réceptions<span class="x">✕</span></a></li>
-        <li data-cat="scenography"><a href="portfolio.html?cat=scenography">Scénographie<span class="x">✕</span></a></li>
-        <li data-cat="interiors"><a href="portfolio.html?cat=interiors">Intérieurs<span class="x">✕</span></a></li>
-        <li data-cat="window-display"><a href="portfolio.html?cat=window-display">Vitrines<span class="x">✕</span></a></li>
-        <li data-cat="set-design"><a href="portfolio.html?cat=set-design">Set design<span class="x">✕</span></a></li>
+        <li data-cat="weddings"><a href="index.html?cat=weddings">Mariages<span class="x">✕</span></a></li>
+        <li data-cat="parties"><a href="index.html?cat=parties">Réceptions<span class="x">✕</span></a></li>
+        <li data-cat="scenography"><a href="index.html?cat=scenography">Scénographie<span class="x">✕</span></a></li>
+        <li data-cat="interiors"><a href="index.html?cat=interiors">Intérieurs<span class="x">✕</span></a></li>
+        <li data-cat="window-display"><a href="index.html?cat=window-display">Vitrines<span class="x">✕</span></a></li>
+        <li data-cat="set-design"><a href="index.html?cat=set-design">Set design<span class="x">✕</span></a></li>
       </ul>
       <ul class="secondary">
         <li><a href="about.html">À propos</a></li>
-        <li><a href="index.html#contact">Contact</a></li>
+        <li><a href="about.html#contact">Contact</a></li>
       </ul>
     </nav>
   </header>
 
-  <!-- HERO -->
-  <section class="hero">
-    <p class="kicker">Studio — Paris &amp; international</p>
-    <h1>
-      <span class="line"><span>Direction</span></span>
-      <span class="line"><span><em>artistique</em> &amp;</span></span>
-      <span class="line"><span>production</span></span>
-    </h1>
-    <div class="sub">
-      <p>Claire Creative conçoit des événements à forte identité visuelle — mariages, dîners privés, lancements de marque — avec une vision claire et une exécution précise.</p>
-      <span class="scroll-cue">Défiler</span>
-    </div>
-  </section>
+  <div id="field" aria-label="Projets — faire défiler pour explorer"></div>
+  <div id="field-title" aria-hidden="true"></div>
 
-  <!-- MARQUEE -->
-  <div class="marquee" aria-hidden="true">
-    <div class="track">
-      <span>Direction artistique <i>*</i></span>
-      <span>Production événementielle <i>*</i></span>
-      <span>Scénographie <i>*</i></span>
-      <span>Curation <i>*</i></span>
-      <span>Paris <i>*</i></span>
+  <div id="project-overlay" role="dialog" aria-label="Projet">
+    <div class="po-bar">
+      <span class="po-title"></span>
+      <button class="po-close" aria-label="Fermer">✕</button>
     </div>
+    <div class="po-images"></div>
   </div>
 
-  <!-- FILM STRIP -->
-  <section class="strip-wrap reveal">
-    <p class="strip-note">Projets récents — faire défiler →</p>
-    <div class="strip" style="margin-top:3vh">
-      <figure><img src="assets/img/weddings/weddings-01.jpg" alt="Mariage — détail de table" loading="lazy"></figure>
-      <figure><img src="assets/img/scenography/scenography-01.jpg" alt="Scénographie Pucci" loading="lazy"></figure>
-      <figure><img src="assets/img/parties/parties-01.jpg" alt="Réception privée" loading="lazy"></figure>
-      <figure><img src="assets/img/interiors/interiors-01.jpg" alt="Design d'intérieur" loading="lazy"></figure>
-      <figure><img src="assets/img/window-display/window-display-01.jpg" alt="Vitrine" loading="lazy"></figure>
-      <figure><img src="assets/img/set-design/set-design-01.jpg" alt="Set design" loading="lazy"></figure>
-      <figure><img src="assets/img/weddings/weddings-05.jpg" alt="Mariage" loading="lazy"></figure>
-      <figure><img src="assets/img/parties/parties-08.jpg" alt="Réception" loading="lazy"></figure>
-    </div>
-  </section>
-
-  <!-- SERVICES -->
-  <section class="services">
-    <div class="section-head reveal">
-      <h2>Le <em>studio</em></h2>
-      <span class="idx">(Savoir-faire)</span>
-    </div>
-    <div class="service reveal">
-      <span class="num">01</span>
-      <h3>Creative direction &amp; curation</h3>
-      <p>Une direction claire pour chaque projet : identité visuelle, moodboards, sélection des lieux, des objets et des partenaires — cohérence esthétique de bout en bout.</p>
-    </div>
-    <div class="service reveal">
-      <span class="num">02</span>
-      <h3>Special projects &amp; events</h3>
-      <p>Mariages, dîners privés, lancements de marque, projets corporate : des événements pensés comme des expériences, en France et à l'international.</p>
-    </div>
-    <div class="service reveal">
-      <span class="num">03</span>
-      <h3>Production</h3>
-      <p>Maîtrise logistique, équipe resserrée, réseau de partenaires de confiance : un accompagnement de la conception à la production, sans friction.</p>
-    </div>
-  </section>
-
-  <!-- PORTFOLIO TEASER -->
-  <section>
-    <div class="section-head reveal">
-      <h2>Port<em>folio</em></h2>
-      <a class="idx" href="portfolio.html">(Tout voir →)</a>
-    </div>
-    <div class="cats">
-      <figure class="cat-card reveal">
-        <a href="portfolio.html?cat=weddings">
-          <img src="assets/img/weddings/weddings-03.jpg" alt="Weddings" loading="lazy">
-          <span class="veil"></span>
-          <figcaption>Mariages <small>29 images</small></figcaption>
-        </a>
-      </figure>
-      <figure class="cat-card reveal">
-        <a href="portfolio.html?cat=parties">
-          <img src="assets/img/parties/parties-03.jpg" alt="Parties" loading="lazy">
-          <span class="veil"></span>
-          <figcaption>Réceptions <small>26 images</small></figcaption>
-        </a>
-      </figure>
-      <figure class="cat-card reveal">
-        <a href="portfolio.html?cat=scenography">
-          <img src="assets/img/scenography/scenography-05.jpg" alt="Scenography" loading="lazy">
-          <span class="veil"></span>
-          <figcaption>Scénographie <small>24 images</small></figcaption>
-        </a>
-      </figure>
-      <figure class="cat-card reveal">
-        <a href="portfolio.html?cat=interiors">
-          <img src="assets/img/interiors/interiors-04.jpg" alt="Interiors" loading="lazy">
-          <span class="veil"></span>
-          <figcaption>Intérieurs <small>21 images</small></figcaption>
-        </a>
-      </figure>
-      <figure class="cat-card reveal">
-        <a href="portfolio.html?cat=window-display">
-          <img src="assets/img/window-display/window-display-02.jpg" alt="Window display" loading="lazy">
-          <span class="veil"></span>
-          <figcaption>Vitrines <small>26 images</small></figcaption>
-        </a>
-      </figure>
-      <figure class="cat-card reveal">
-        <a href="portfolio.html?cat=set-design">
-          <img src="assets/img/set-design/set-design-02.jpg" alt="Set design" loading="lazy">
-          <span class="veil"></span>
-          <figcaption>Set design <small>16 images</small></figcaption>
-        </a>
-      </figure>
-    </div>
-  </section>
-
-  <!-- CLIENTS -->
-  <section class="clients-wrap">
-    <div class="section-head reveal">
-      <h2>Ils nous font <em>confiance</em></h2>
-      <span class="idx">(Clients)</span>
-    </div>
-    <div class="clients-list reveal">
-      <div class="client-row"><span>Dior</span><small>Maison</small></div>
-      <div class="client-row"><span>Pucci</span><small>Mode</small></div>
-      <div class="client-row"><span>Airbnb</span><small>Expériences</small></div>
-      <div class="client-row"><span>Officine Universelle Buly</span><small>Beauté</small></div>
-      <div class="client-row"><span>Marie-Hélène de Taillac</span><small>Joaillerie</small></div>
-      <div class="client-row"><span>Anita Dongre</span><small>Mode</small></div>
-      <div class="client-row"><span>Ecru</span><small>Design</small></div>
-      <div class="client-row"><span>Magna Presse</span><small>Édition</small></div>
-      <div class="client-row"><span>The Palace Atelier</span><small>Retail</small></div>
-      <div class="client-row"><span>The PDKF Store</span><small>Retail</small></div>
-    </div>
-  </section>
-
-  <!-- CONTACT / FOOTER -->
-  <footer class="contact" id="contact">
-    <p class="cta-label">Un projet, un lieu, une occasion —</p>
-    <a class="mail" href="mailto:claire@clairecreative.fr">claire@<br>clairecreative.fr</a>
-    <div class="grid">
-      <div class="col">
-        <p>Studio</p>
-        Claire Creative<br>Paris, France
-      </div>
-      <div class="col">
-        <p>Contact</p>
-        <a href="mailto:claire@clairecreative.fr">claire@clairecreative.fr</a><br><br>
-        <a href="tel:+33644366432">+33 6 44 36 64 32</a>
-      </div>
-      <div class="col">
-        <p>Suivre</p>
-        <a href="https://www.instagram.com/clairecreative.fr" target="_blank" rel="noopener">Instagram</a>
-      </div>
-      <div class="col">
-        <p>Navigation</p>
-        <a href="portfolio.html">Portfolio</a><br><br>
-        <a href="about.html">À propos</a>
-      </div>
-    </div>
-    <div class="legal">
-      <span>© Claire Creative — Claire Deroo</span>
-      <span>Direction artistique &amp; production événementielle, Paris</span>
-    </div>
-  </footer>
-
+  <script src="js/projects.js"></script>
   <script src="js/main.js"></script>
+  <script src="js/field.js"></script>
 </body>
 </html>
