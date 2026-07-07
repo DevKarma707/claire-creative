@@ -158,9 +158,12 @@
 
   // ---- drag / tactile ----
   let dragging = false, lastY = 0, vel = 0, downX = 0, downY = 0, moved = 0;
+  let downCard = null; // mémorisé au pointerdown : avec setPointerCapture, le
+                       // pointerup est re-ciblé sur le conteneur et perd la carte
   field.addEventListener("pointerdown", (e) => {
     if (overlayOpen) return;
     dragging = true; moved = 0; vel = 0;
+    downCard = e.target.closest(".fcard");
     lastY = e.clientY; downX = e.clientX; downY = e.clientY;
     try { field.setPointerCapture(e.pointerId); } catch (_) {}
   });
@@ -173,13 +176,11 @@
     navOnScroll(-dy);
     moved = Math.max(moved, Math.hypot(e.clientX - downX, e.clientY - downY));
   });
-  field.addEventListener("pointerup", (e) => {
+  field.addEventListener("pointerup", () => {
     dragging = false;
     target += vel * 14;
-    if (moved < 10) {
-      const el = e.target.closest(".fcard");
-      if (el) openProject(cards[+el.dataset.i].project);
-    }
+    if (moved < 10 && downCard) openProject(cards[+downCard.dataset.i].project);
+    downCard = null;
   });
   field.addEventListener("pointercancel", () => { dragging = false; });
 
