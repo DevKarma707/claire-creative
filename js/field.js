@@ -1,5 +1,5 @@
 /* ============ Landing "field" — projets récents, scroll infini + hover façon villaeugenie.com ============
-   Cartes = projets (une image de couverture chacun), 2 colonnes décalées, scroll vertical
+   Cartes = projets (une image de couverture chacun), grille uniforme 4 colonnes, scroll vertical
    infini avec inertie (molette, drag, tactile). Au survol : la carte grossit et passe devant,
    les autres floutent, rétrécissent et sont repoussées ; le titre du projet suit le curseur.
    Clic (sans drag) : le projet s'ouvre en grand et on scrolle ses images.
@@ -31,24 +31,25 @@
 
   function layoutParams() {
     const w = window.innerWidth;
-    COLS = w < 700 ? 1 : 2;
-    CW = COLS === 1 ? w * 0.72 : Math.min(w * 0.36, 620);
-    CH = CW * 0.664;
-    const span = COLS === 1 ? w * 0.82 : w * 0.78;
-    const left = (w - span) / 2;
-    colX = COLS === 1 ? [w / 2 - CW / 2] : [left, left + span - CW];
+    COLS = w < 640 ? 2 : 4;
+    const margin = w * 0.036;
+    const gap = w * 0.036;
+    CW = (w - margin * 2 - gap * (COLS - 1)) / COLS;
+    CH = CW * 0.57; // cartes paysage comme la référence
+    colX = Array.from({ length: COLS }, (_, c) => margin + c * (CW + gap));
   }
 
   function build(cat) {
-    current = cat === "all" ? PROJECTS : PROJECTS.filter((p) => p.cat === cat);
+    current = cat === "all" ? PROJECTS : PROJECTS.filter((p) => p.service === cat);
+    if (!current.length) current = PROJECTS; // ancien lien ?cat= inconnu → tout afficher
     field.innerHTML = "";
     cards = [];
     colH = [];
     layoutParams();
     const gapY = CH * 0.55;
-    const stagger = (CH + gapY) / 2;
     const rows = Math.ceil(current.length / COLS);
-    for (let c = 0; c < COLS; c++) colH[c] = Math.max(rows * (CH + gapY), window.innerHeight + CH);
+    const firstOffset = window.innerHeight * 0.42; // espace blanc sous le menu au chargement
+    for (let c = 0; c < COLS; c++) colH[c] = Math.max(rows * (CH + gapY) + firstOffset, window.innerHeight + CH);
 
     current.forEach((project, i) => {
       const col = i % COLS;
@@ -57,14 +58,13 @@
       el.className = "fcard";
       el.style.width = CW + "px";
       el.style.height = CH + "px";
-      el.innerHTML = `<img src="${project.images[0]}" loading="lazy" draggable="false" alt="${project.title.join(" — ")}">
-                      <span class="fcard-label">${project.title.join(" — ")}</span>`;
+      el.innerHTML = `<img src="${project.images[0]}" loading="lazy" draggable="false" alt="${project.title.join(" — ")}">`;
       el.dataset.i = i;
       field.appendChild(el);
       cards.push({
         el, col,
         baseX: colX[col],
-        baseY: row * (CH + gapY) + (col % 2 ? stagger : 0),
+        baseY: firstOffset + row * (CH + gapY),
         hx: 0, hy: 0, hs: 1, thx: 0, thy: 0, ths: 1,
         project, idx: i,
       });
@@ -89,6 +89,10 @@
       if (visible) {
         c.el.style.transform =
           `translate3d(${Math.round(c.baseX + c.hx)}px, ${Math.round(y + c.hy)}px, 0) scale(${c.hs.toFixed(3)})`;
+      }
+      if (c === hovered) {
+        titleEl.style.left = c.baseX + c.hx + CW / 2 + "px";
+        titleEl.style.top = y + c.hy + CH / 2 + "px";
       }
     }
     requestAnimationFrame(tick);
@@ -140,10 +144,6 @@
   field.addEventListener("pointerout", (e) => {
     if (isTouch) return;
     if (!e.relatedTarget || !e.relatedTarget.closest(".fcard")) leave();
-  });
-  document.addEventListener("mousemove", (e) => {
-    titleEl.style.left = e.clientX + "px";
-    titleEl.style.top = e.clientY + "px";
   });
 
   // ---- molette ----

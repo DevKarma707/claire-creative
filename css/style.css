@@ -59,7 +59,7 @@ h1 em, h2 em, .section-head h2 em, .page-hero h1 em { font-style: normal; }
 header {
   position: sticky; top: 0; z-index: 900;
   display: grid;
-  grid-template-columns: 215px 1fr;
+  grid-template-columns: 150px 1fr;
   gap: 0 18px;
   align-items: start;
   padding: 18px 4vw 10px;
@@ -86,20 +86,27 @@ header.nav-hidden a, header.nav-hidden button { pointer-events: none; }
 /* yeux en blanc (le blend difference les rend noirs sur fond blanc) */
 header .eyes .eyeball { fill: transparent; stroke: #fff; }
 header .eyes .pupil { fill: #fff; }
-nav.main {
-  display: block;
-  font-size: 0; /* évite les espaces fantômes entre les mots */
-}
-nav.main ul { list-style: none; display: inline; }
-nav.main li { display: inline; }
+nav.main { display: block; }
+nav.main ul { list-style: none; }
+nav.main li { display: block; }
 nav.main a {
   display: inline-block;
-  font-size: clamp(22px, 2.9vw, 42px);
-  font-weight: 700; line-height: 0.92;
+  font-size: clamp(24px, 2.9vw, 50px);
+  font-weight: 700; line-height: 1.02;
   text-transform: uppercase; letter-spacing: -0.01em;
-  margin-right: 0.55em;
   cursor: pointer;
 }
+/* bouton … : révèle À propos / Contact */
+.nav-dots {
+  pointer-events: auto;
+  display: block; margin-top: 10px;
+  background: rgba(255,255,255,0.16); border: 0; border-radius: 6px;
+  color: #fff; font-size: 18px; line-height: 1;
+  padding: 4px 12px 9px; cursor: pointer;
+}
+nav.main .secondary { display: none; margin-top: 8px; }
+nav.main.show-secondary .secondary { display: block; }
+nav.main .secondary a { font-size: clamp(18px, 1.8vw, 28px); opacity: 0.95; }
 nav.main a:hover { animation: navblink 0.2s ease-in-out infinite; }
 @keyframes navblink { 50% { opacity: 0; } }
 nav.main a .x {
@@ -329,17 +336,12 @@ body.has-field { overflow: hidden; height: 100svh; }
   width: 100%; height: 100%; object-fit: cover;
   pointer-events: none;
 }
-.fcard-label {
-  position: absolute; left: 0; top: calc(100% + 8px);
-  font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
-  color: var(--ink-soft); white-space: nowrap;
-}
+
 #field.dimmed .fcard { filter: blur(7px); }
 #field.dimmed .fcard.hot { filter: none; z-index: 10; }
-#field.dimmed .fcard .fcard-label { opacity: 0; }
 #field-title {
   display: none; position: fixed; z-index: 20;
-  transform: translate(-50%, -130%);
+  transform: translate(-50%, -50%);
   pointer-events: none;
   font-family: var(--sans); font-weight: 800;
   font-size: 30px; line-height: 1.05;

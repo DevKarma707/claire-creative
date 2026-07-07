@@ -39,6 +39,10 @@ window.addEventListener("load", () => {
   if (loader) setTimeout(() => loader.classList.add("done"), 700);
 });
 
+// ---- bouton … du menu : révèle À propos / Contact ----
+const dots = document.querySelector(".nav-dots");
+if (dots) dots.addEventListener("click", () => dots.closest("nav").classList.toggle("show-secondary"));
+
 // ---- reveal on scroll ----
 const io = new IntersectionObserver(
   (entries) => entries.forEach((e) => e.isIntersecting && e.target.classList.add("in")),
