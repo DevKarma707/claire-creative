@@ -192,6 +192,11 @@
     overlayBody.innerHTML = project.images
       .map((src) => `<img src="${src}" alt="${project.title.join(" — ")}" loading="lazy">`)
       .join("");
+    // bento : classe selon l'orientation réelle de chaque image
+    overlayBody.querySelectorAll("img").forEach((im) => {
+      const tag = () => im.classList.toggle("port", im.naturalHeight > im.naturalWidth);
+      im.complete && im.naturalWidth ? tag() : im.addEventListener("load", tag, { once: true });
+    });
     overlay.classList.add("open");
     overlay.scrollTop = 0;
     header.classList.add("nav-hidden");

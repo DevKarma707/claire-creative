@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Journal — Claire Creative, Paris</title>
+  <meta name="description" content="Le journal de Claire Creative : coulisses des projets, direction artistique et production événementielle à Paris et à l'international.">
+  <link rel="icon" href="assets/logo-yeux.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=20260707a">
+  <style>
+    .journal { padding: 4vh 4vw 12vh; max-width: 900px; }
+    .journal .entry { display: block; padding: 26px 0; border-bottom: 1px solid var(--line); }
+    .journal .entry h2 { font-size: clamp(22px, 3vw, 36px); font-weight: 800; text-transform: uppercase; line-height: 1.05; letter-spacing: -0.01em; }
+    .journal .entry:hover h2 { animation: navblink 0.2s ease-in-out infinite; }
+    .journal .entry .date { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-soft); margin-top: 6px; display: block; }
+    .journal .entry p { color: var(--ink-soft); margin-top: 8px; max-width: 640px; }
+    .journal .empty { color: var(--ink-soft); padding: 6vh 0; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a class="brand" href="index.html">
+      <span class="eyes nav-eyes"></span>
+      <span class="wordmark">Claire<br>Creative</span>
+    </a>
+    <nav class="main">
+      <ul class="cats" id="cats-nav">
+        <li data-cat="creative-direction-curation"><a href="index.html?cat=creative-direction-curation">Creative Direction<br>&amp; Curation<span class="x">✕</span></a></li>
+        <li data-cat="special-projects-events"><a href="index.html?cat=special-projects-events">Special Projects<br>&amp; Events<span class="x">✕</span></a></li>
+        <li data-cat="production"><a href="index.html?cat=production">Production<span class="x">✕</span></a></li>
+      </ul>
+      <ul class="secondary">
+        <li><a href="about.html">À propos</a></li>
+        <li><a href="about.html#contact">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <section class="page-hero">
+    <h1>Jour<em>nal</em></h1>
+  </section>
+
+  <div class="journal" id="journal"><p class="empty">Chargement…</p></div>
+
+  <script>
+    fetch("data/blog.json?nocache=" + Date.now())
+      .then((r) => r.json())
+      .then((list) => {
+        document.getElementById("journal").innerHTML = list.length
+          ? list.map((a) => `<a class="entry" href="blog/${a.slug}.html"><h2>${a.title}</h2><span class="date">${a.date}</span><p>${a.description || ""}</p></a>`).join("")
+          : '<p class="empty">Premiers articles à venir.</p>';
+      })
+      .catch(() => { document.getElementById("journal").innerHTML = '<p class="empty">Premiers articles à venir.</p>'; });
+  </script>
+  <script src="js/main.js?v=20260707a"></script>
+</body>
+</html>
