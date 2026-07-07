@@ -96,17 +96,57 @@ nav.main a {
   text-transform: uppercase; letter-spacing: -0.01em;
   cursor: pointer;
 }
-/* bouton … : révèle À propos / Contact */
+/* boutons du menu (Clients, chip client actif) : même style que les mots */
+nav.main button {
+  display: inline-block;
+  background: none; border: 0; color: #fff; padding: 0;
+  font-family: var(--sans);
+  font-size: clamp(24px, 2.9vw, 50px);
+  font-weight: 700; line-height: 1.02;
+  text-transform: uppercase; letter-spacing: -0.01em;
+  cursor: pointer; text-align: left;
+}
+nav.main button:hover { animation: navblink 0.2s ease-in-out infinite; }
+/* bouton … : révèle À propos / Clients / Contact (précédés d'un tiret, comme la référence) */
 .nav-dots {
   pointer-events: auto;
   display: block; margin-top: 10px;
-  background: rgba(255,255,255,0.16); border: 0; border-radius: 6px;
-  color: #fff; font-size: 18px; line-height: 1;
-  padding: 4px 12px 9px; cursor: pointer;
+  background: rgba(255,255,255,0.16); border-radius: 6px;
+  font-size: 18px !important; line-height: 1 !important;
+  padding: 4px 12px 9px !important; cursor: pointer;
 }
-nav.main .secondary { display: none; margin-top: 8px; }
+.nav-dots:hover { animation: none; opacity: 0.7; }
+nav.main .secondary { display: none; margin-top: 4px; }
 nav.main.show-secondary .secondary { display: block; }
-nav.main .secondary a { font-size: clamp(18px, 1.8vw, 28px); opacity: 0.95; }
+nav.main.show-secondary .secondary::before { content: "—"; display: block; font-weight: 700; font-size: clamp(20px, 2vw, 32px); line-height: 1.3; }
+/* chip client actif : remplace les mentions */
+.client-chip .x { font-size: 0.55em; vertical-align: 0.28em; margin-left: 0.3em; }
+nav.main.client-mode .cats, nav.main.client-mode .nav-dots, nav.main.client-mode .secondary { display: none; }
+
+/* ---------- overlay clients (liste plein écran alignée à droite, façon référence) ---------- */
+#clients-overlay {
+  position: fixed; inset: 0; z-index: 950;
+  overflow-y: auto; overscroll-behavior: contain;
+  padding: 90px 4vw 10vh;
+  text-align: right;
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  opacity: 0; visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s;
+}
+#clients-overlay.open { opacity: 1; visibility: visible; }
+#clients-overlay ul { list-style: none; }
+#clients-overlay li { display: block; }
+#clients-overlay a, #clients-overlay .off {
+  display: inline-block;
+  font-size: clamp(22px, 2.9vw, 46px);
+  font-weight: 700; line-height: 1.15;
+  text-transform: uppercase; letter-spacing: -0.01em;
+  color: var(--ink);
+}
+#clients-overlay a:hover { animation: navblink 0.2s ease-in-out infinite; }
+#clients-overlay .off { color: rgba(0, 0, 0, 0.22); cursor: default; }
 nav.main a:hover { animation: navblink 0.2s ease-in-out infinite; }
 @keyframes navblink { 50% { opacity: 0; } }
 nav.main a .x {

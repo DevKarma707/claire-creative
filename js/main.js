@@ -39,9 +39,33 @@ window.addEventListener("load", () => {
   if (loader) setTimeout(() => loader.classList.add("done"), 700);
 });
 
-// ---- bouton … du menu : révèle À propos / Contact ----
+// ---- bouton … du menu : révèle À propos / Clients / Contact ----
 const dots = document.querySelector(".nav-dots");
 if (dots) dots.addEventListener("click", () => dots.closest("nav").classList.toggle("show-secondary"));
+
+// ---- overlay clients : liste plein écran, clients sans projets grisés ----
+const clientsBtn = document.querySelector(".nav-clients");
+const clientsOverlay = document.getElementById("clients-overlay");
+if (clientsBtn && clientsOverlay && typeof CLIENTS !== "undefined") {
+  const withProjects = new Set(
+    (typeof PROJECTS !== "undefined" ? PROJECTS : []).map((p) => p.client).filter(Boolean)
+  );
+  clientsOverlay.innerHTML =
+    "<ul>" +
+    CLIENTS.map((c) =>
+      withProjects.has(c.slug)
+        ? `<li><a href="index.html?client=${c.slug}" data-client="${c.slug}">${c.label}</a></li>`
+        : `<li><span class="off">${c.label}</span></li>`
+    ).join("") +
+    "</ul>";
+  const setOpen = (open) => {
+    clientsOverlay.classList.toggle("open", open);
+    document.getElementById("field")?.classList.toggle("dimmed", open);
+  };
+  clientsBtn.addEventListener("click", () => setOpen(!clientsOverlay.classList.contains("open")));
+  clientsOverlay.addEventListener("click", (e) => { if (e.target === clientsOverlay) setOpen(false); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") setOpen(false); });
+}
 
 // ---- reveal on scroll ----
 const io = new IntersectionObserver(

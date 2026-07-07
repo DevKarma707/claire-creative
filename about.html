@@ -27,8 +27,10 @@
       <button class="nav-dots" aria-label="Plus">…</button>
       <ul class="secondary">
         <li><a href="about.html">À propos</a></li>
+        <li><button class="nav-clients">Clients</button></li>
         <li><a href="about.html#contact">Contact</a></li>
       </ul>
+      <button class="client-chip" id="client-chip" hidden><span class="name"></span><span class="x">✕</span></button>
     </nav>
   </header>
 
@@ -89,6 +91,10 @@
       <span>Direction artistique &amp; production événementielle, Paris</span>
     </div>
   </footer>
+
+  <div id="clients-overlay" aria-label="Clients"></div>
+
+  <script src="js/projects.js"></script>
 
   <script src="js/main.js"></script>
 </body>

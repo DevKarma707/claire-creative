@@ -39,9 +39,11 @@
     colX = Array.from({ length: COLS }, (_, c) => margin + c * (CW + gap));
   }
 
-  function build(cat) {
-    current = cat === "all" ? PROJECTS : PROJECTS.filter((p) => p.service === cat);
-    if (!current.length) current = PROJECTS; // ancien lien ?cat= inconnu → tout afficher
+  function build() {
+    current = activeClient
+      ? PROJECTS.filter((p) => p.client === activeClient)
+      : activeCat === "all" ? PROJECTS : PROJECTS.filter((p) => p.service === activeCat);
+    if (!current.length) current = PROJECTS; // filtre inconnu → tout afficher
     field.innerHTML = "";
     cards = [];
     colH = [];
@@ -204,33 +206,67 @@
     if (e.key === "Escape" && overlayOpen) closeProject();
   });
 
-  // ---- filtres : catégories du menu ----
+  // ---- filtres : mentions du menu + clients ----
   const catsNav = document.getElementById("cats-nav");
-  let activeCat = new URLSearchParams(location.search).get("cat") || "all";
+  const nav = catsNav.closest("nav");
+  const chip = document.getElementById("client-chip");
+  const params = new URLSearchParams(location.search);
+  let activeCat = params.get("cat") || "all";
+  let activeClient = params.get("client") || null;
+  if (activeClient && !PROJECTS.some((p) => p.client === activeClient)) activeClient = null;
 
-  function setNavState(cat) {
-    catsNav.classList.toggle("has-category", cat !== "all");
-    catsNav.querySelectorAll("li").forEach((li) =>
-      li.classList.toggle("is-active", li.dataset.cat === cat)
-    );
+  function setNavState() {
+    nav.classList.toggle("client-mode", !!activeClient);
+    if (activeClient) {
+      chip.hidden = false;
+      chip.querySelector(".name").textContent =
+        (CLIENTS.find((c) => c.slug === activeClient) || { label: activeClient }).label;
+    } else {
+      chip.hidden = true;
+      catsNav.classList.toggle("has-category", activeCat !== "all");
+      catsNav.querySelectorAll("li").forEach((li) =>
+        li.classList.toggle("is-active", li.dataset.cat === activeCat)
+      );
+    }
+  }
+
+  function applyFilter() {
+    if (overlayOpen) closeProject();
+    document.getElementById("clients-overlay")?.classList.remove("open");
+    setNavState();
+    field.style.opacity = 0;
+    setTimeout(() => { build(); field.style.opacity = 1; }, 350);
+    const url = activeClient ? `index.html?client=${activeClient}`
+      : activeCat === "all" ? "index.html" : `index.html?cat=${activeCat}`;
+    history.replaceState(null, "", url);
   }
 
   catsNav.querySelectorAll("a").forEach((a) => {
     a.addEventListener("click", (e) => {
       e.preventDefault();
-      if (overlayOpen) closeProject();
       const li = a.closest("li");
+      activeClient = null;
       activeCat = li.classList.contains("is-active") ? "all" : li.dataset.cat;
-      setNavState(activeCat);
-      field.style.opacity = 0;
-      setTimeout(() => { build(activeCat); field.style.opacity = 1; }, 350);
-      history.replaceState(null, "", activeCat === "all" ? "index.html" : `index.html?cat=${activeCat}`);
+      applyFilter();
     });
   });
 
-  window.addEventListener("resize", () => build(activeCat));
+  // clic sur un client dans l'overlay → filtre par client, le nav affiche son nom + ✕
+  document.getElementById("clients-overlay")?.addEventListener("click", (e) => {
+    const a = e.target.closest("a[data-client]");
+    if (!a) return;
+    e.preventDefault();
+    activeClient = a.dataset.client;
+    activeCat = "all";
+    field.classList.remove("dimmed");
+    applyFilter();
+  });
 
-  setNavState(activeCat);
-  build(activeCat);
+  chip.addEventListener("click", () => { activeClient = null; applyFilter(); });
+
+  window.addEventListener("resize", () => build());
+
+  setNavState();
+  build();
   tick();
 })();
