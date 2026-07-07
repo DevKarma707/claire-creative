@@ -41,7 +41,7 @@ window.addEventListener("load", () => {
 
 // ---- bouton … du menu : révèle À propos / Clients / Contact ----
 const dots = document.querySelector(".nav-dots");
-if (dots) dots.addEventListener("click", () => dots.closest("nav").classList.toggle("show-secondary"));
+if (dots) dots.addEventListener("click", () => dots.closest("nav").classList.toggle("nav-collapsed"));
 
 // ---- overlay clients : liste plein écran, clients sans projets grisés ----
 const clientsBtn = document.querySelector(".nav-clients");

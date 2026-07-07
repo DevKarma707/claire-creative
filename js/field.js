@@ -50,7 +50,8 @@
     layoutParams();
     const gapY = CH * 0.55;
     const rows = Math.ceil(current.length / COLS);
-    const firstOffset = window.innerHeight * 0.42; // espace blanc sous le menu au chargement
+    // espace blanc au chargement : sous le menu complet
+    const firstOffset = Math.max(window.innerHeight * 0.42, header.offsetHeight + 30);
     for (let c = 0; c < COLS; c++) colH[c] = Math.max(rows * (CH + gapY) + firstOffset, window.innerHeight + CH);
 
     current.forEach((project, i) => {
