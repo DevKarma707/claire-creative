@@ -12,13 +12,13 @@ body { font-family:"Helvetica Neue",Helvetica,Arial,sans-serif; background:#fff;
 header { display:flex; align-items:center; justify-content:space-between; padding:16px 3vw; border-bottom:1px solid #000; }
 header h1 { font-size:15px; text-transform:uppercase; letter-spacing:.12em; }
 header .status { font-size:12px; color:#666; }
-nav.tabs { display:flex; gap:0; border-bottom:1px solid #000; padding:0 3vw; }
-nav.tabs button { background:none; border:0; border-bottom:3px solid transparent; padding:12px 18px; font-size:12px; text-transform:uppercase; letter-spacing:.15em; cursor:pointer; }
+nav.tabs { display:flex; gap:0; border-bottom:1px solid #000; padding:0 3vw; overflow-x:auto; }
+nav.tabs button { background:none; border:0; border-bottom:3px solid transparent; padding:12px 16px; font-size:12px; text-transform:uppercase; letter-spacing:.14em; cursor:pointer; white-space:nowrap; }
 nav.tabs button.on { border-bottom-color:#000; font-weight:700; }
-main { padding:24px 3vw 80px; max-width:1100px; }
+main { padding:24px 3vw 90px; max-width:1100px; }
 h2 { font-size:13px; text-transform:uppercase; letter-spacing:.15em; margin:26px 0 12px; }
-.card { border:1px solid #ddd; padding:14px; margin-bottom:12px; }
-.card.dragover { outline:2px dashed #000; }
+.card { border:1px solid #ddd; padding:14px; margin-bottom:12px; background:#fff; }
+.card.dragover { outline:2px dashed #000; outline-offset:2px; }
 .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
 input[type=text], textarea, select { border:1px solid #bbb; padding:8px 10px; font:inherit; width:100%; }
 textarea { resize:vertical; }
@@ -27,28 +27,38 @@ button.b { background:#000; color:#fff; border:0; padding:9px 16px; font-size:12
 button.b.ghost { background:#fff; color:#000; border:1px solid #000; }
 button.b:disabled { opacity:.4; cursor:default; }
 button.mini { background:#f2f2f2; border:1px solid #ccc; padding:3px 9px; font-size:12px; cursor:pointer; }
+.handle { cursor:grab; font-size:16px; padding:0 6px; user-select:none; color:#999; }
+.handle:hover { color:#000; }
 .thumbs { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
-.thumb { position:relative; width:110px; }
-.thumb img { width:110px; height:74px; object-fit:cover; display:block; border:1px solid #ddd; }
+.thumb { position:relative; width:110px; cursor:grab; }
+.thumb.dragover { outline:2px dashed #000; }
+.thumb img { width:110px; height:74px; object-fit:cover; display:block; border:1px solid #ddd; pointer-events:none; }
 .thumb .tools { display:flex; gap:2px; margin-top:2px; }
 .muted { color:#777; font-size:12px; }
 .head-row { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
 .proj-title { font-weight:700; text-transform:uppercase; }
 .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 .grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
-#toast { position:fixed; bottom:18px; left:50%; transform:translateX(-50%); background:#000; color:#fff; padding:10px 20px; font-size:13px; display:none; z-index:99; max-width:90vw; }
-.savebar { position:fixed; bottom:0; left:0; right:0; background:#fff; border-top:1px solid #000; padding:10px 3vw; display:flex; gap:12px; align-items:center; justify-content:flex-end; }
+#toast { position:fixed; bottom:70px; left:50%; transform:translateX(-50%); background:#000; color:#fff; padding:10px 20px; font-size:13px; display:none; z-index:99; max-width:90vw; }
+.savebar { position:fixed; bottom:0; left:0; right:0; background:#fff; border-top:1px solid #000; padding:10px 3vw; display:flex; gap:12px; align-items:center; justify-content:flex-end; z-index:50; }
 .tag { font-size:10px; text-transform:uppercase; letter-spacing:.1em; background:#eee; padding:2px 7px; }
+.ok { color:#0a7a2f; } .err { color:#b3271e; }
+#picker { position:fixed; inset:0; background:rgba(255,255,255,.96); z-index:200; overflow-y:auto; padding:30px 3vw; display:none; }
+#picker.open { display:block; }
+#picker .grid { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+#picker img { width:130px; height:88px; object-fit:cover; cursor:pointer; border:1px solid #ddd; }
+#picker img:hover { outline:2px solid #000; }
 @media (max-width:700px){ .grid2,.grid3{grid-template-columns:1fr} }
 </style>
 </head>
 <body>
 <header>
   <h1>👀 Claire Creative — Admin</h1>
-  <span class="status" id="status">non connecté</span>
+  <span class="status" id="status">…</span>
 </header>
 <nav class="tabs">
   <button data-tab="projets" class="on">Projets</button>
+  <button data-tab="clients">Clients</button>
   <button data-tab="import">Import JSON</button>
   <button data-tab="blog">Journal / Blog</button>
   <button data-tab="reglages">Réglages</button>
@@ -56,15 +66,25 @@ button.mini { background:#f2f2f2; border:1px solid #ccc; padding:3px 9px; font-s
 <main>
   <section id="tab-projets">
     <div class="head-row">
-      <p class="muted">Glisse les cartes ou utilise ↑↓ pour l'ordre d'affichage. Les modifications ne sont publiées qu'au clic sur « Publier ».</p>
+      <p class="muted">Glisse une carte par sa poignée ⠿ (ou ↑↓) pour changer l'ordre d'affichage du site. Rien n'est en ligne avant « Publier ».</p>
       <button class="b ghost" onclick="addProject()">+ Nouveau projet</button>
     </div>
     <div id="projects"></div>
   </section>
 
+  <section id="tab-clients" hidden>
+    <h2>Clients</h2>
+    <p class="muted">Les clients apparaissent dans le menu « Clients » du site. Ceux qui n'ont aucun projet rattaché sont affichés grisés (non cliquables). La publication se fait avec le bouton « Publier » en bas.</p>
+    <div id="clients-list"></div>
+    <div class="row" style="margin-top:14px">
+      <input type="text" id="new-client" placeholder="Nom du client (ex. Hermès)" style="max-width:320px">
+      <button class="b ghost" onclick="addClient()">+ Ajouter</button>
+    </div>
+  </section>
+
   <section id="tab-import" hidden>
     <h2>Importer des projets (JSON)</h2>
-    <p class="muted">Colle un tableau JSON de projets — même format que ceux générés par Ralph :
+    <p class="muted">Colle un tableau JSON de projets :
     <code>[{"title":["Pucci","Saison 2024","Milan"],"service":"production","client":"pucci","images":["assets/img/…"]}]</code></p>
     <textarea id="import-json" rows="10" placeholder='[{"title":["…"],"service":"…","client":null,"images":["…"]}]'></textarea>
     <p style="margin-top:10px"><button class="b" onclick="importJSON()">Ajouter ces projets</button></p>
@@ -72,7 +92,7 @@ button.mini { background:#f2f2f2; border:1px solid #ccc; padding:3px 9px; font-s
 
   <section id="tab-blog" hidden>
     <div class="head-row">
-      <p class="muted">Articles pour le référencement. « Publier l'article » crée la page HTML et met à jour la liste du Journal.</p>
+      <p class="muted">Articles pour le référencement. « Publier l'article » crée la page HTML et met à jour la liste du Journal — indépendant du bouton « Publier » des projets.</p>
       <button class="b ghost" onclick="newArticle()">+ Nouvel article</button>
     </div>
     <div id="articles"></div>
@@ -84,49 +104,65 @@ button.mini { background:#f2f2f2; border:1px solid #ccc; padding:3px 9px; font-s
       </div>
       <label>Description (SEO, ~150 caractères)</label>
       <input type="text" id="a-desc">
-      <label>Image de couverture (chemin, ex. assets/img/weddings/weddings-01.jpg)</label>
-      <input type="text" id="a-cover">
+      <label>Image de couverture</label>
+      <div class="row">
+        <input type="text" id="a-cover" placeholder="assets/img/…" style="flex:1;min-width:200px">
+        <button class="b ghost" onclick="openPicker()">Choisir parmi les photos</button>
+      </div>
       <label>Contenu (HTML simple : &lt;p&gt;, &lt;h2&gt;, &lt;img src="…"&gt;)</label>
       <textarea id="a-body" rows="14"></textarea>
       <p style="margin-top:12px" class="row">
-        <button class="b" onclick="publishArticle()">Publier l'article</button>
+        <button class="b" id="a-publish" onclick="publishArticle()">Publier l'article</button>
         <button class="b ghost" onclick="closeEditor()">Annuler</button>
+        <span class="muted" id="a-status"></span>
       </p>
     </div>
   </section>
 
   <section id="tab-reglages" hidden>
     <h2>Connexion GitHub</h2>
-    <p class="muted">L'admin publie directement sur le site via GitHub. Il faut un « fine-grained personal access token » avec l'autorisation <b>Contents : Read and write</b> sur le dépôt <b>DevKarma707/claire-creative</b>.<br>
+    <p class="muted">L'admin publie directement sur le site via GitHub. Il faut un « fine-grained personal access token » avec l'autorisation <b>Contents : Read and write</b> sur le dépôt <b>DevKarma707/claire-creative</b> (validité conseillée : 1 an).<br>
     À créer ici : <a href="https://github.com/settings/personal-access-tokens/new" target="_blank">github.com/settings/personal-access-tokens/new</a> — puis colle-le ci-dessous (il reste enregistré dans ce navigateur uniquement).</p>
     <label>Token</label>
     <input type="text" id="token" placeholder="github_pat_…">
-    <p style="margin-top:10px"><button class="b" onclick="saveToken()">Enregistrer le token</button></p>
+    <p style="margin-top:10px" class="row">
+      <button class="b" onclick="saveToken()">Enregistrer</button>
+      <button class="b ghost" onclick="testToken()">Tester la connexion</button>
+      <span id="token-check" class="muted"></span>
+    </p>
     <h2>Infos</h2>
-    <p class="muted">Après publication, le site se met à jour en 1 à 2 minutes (déploiement GitHub Pages) ; le cache peut ajouter quelques minutes.</p>
+    <p class="muted">Après publication, le site se met à jour en 1 à 2 minutes ; l'admin surveille et t'indique « En ligne ✓ » quand c'est visible. Chaque publication est historisée : rien n'est jamais perdu.</p>
   </section>
 </main>
 
 <div class="savebar" id="savebar" hidden>
   <span class="muted" id="save-info"></span>
-  <button class="b" id="publish" onclick="publishProjects()">Publier les projets</button>
+  <button class="b ghost" onclick="if(confirm('Abandonner toutes les modifications non publiées ?'))location.reload()">Annuler les modifs</button>
+  <button class="b" id="publish" onclick="publishProjects()">Publier</button>
 </div>
 <div id="toast"></div>
+<div id="picker">
+  <div class="head-row"><h2>Choisir une photo</h2><button class="b ghost" onclick="closePicker()">Fermer</button></div>
+  <div class="grid" id="picker-grid"></div>
+</div>
 
 <script>
 /* ================= état ================= */
 const REPO = "DevKarma707/claire-creative";
 const API = "https://api.github.com/repos/" + REPO + "/contents/";
+const SITE = location.origin.includes("github.io") ? "https://devkarma707.github.io/claire-creative/" : location.origin + "/";
 let SERVICES = [], CLIENTS = [], PROJECTS = [];
-let uploads = [];      // {path, base64} images à envoyer au moment de publier
-let blog = [];         // data/blog.json
-let editingIdx = null; // article en cours d'édition
+let uploads = [];      // {path, base64} photos à envoyer à la publication
+let blog = [];
+let editingIdx = null;
 let dirty = false;
+let dragProj = null, dragImg = null;
 
 const $ = (s) => document.querySelector(s);
 const token = () => localStorage.getItem("cc-admin-token") || "";
-const toast = (m) => { const t = $("#toast"); t.textContent = m; t.style.display = "block"; setTimeout(() => t.style.display = "none", 3500); };
+const toast = (m) => { const t = $("#toast"); t.textContent = m; t.style.display = "block"; setTimeout(() => t.style.display = "none", 4000); };
 const markDirty = () => { dirty = true; $("#savebar").hidden = false; $("#save-info").textContent = "Modifications non publiées"; };
+const slugify = (s) => s.trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
 /* ================= GitHub API ================= */
 async function gh(path, opts = {}) {
@@ -134,22 +170,32 @@ async function gh(path, opts = {}) {
     ...opts,
     headers: { Authorization: "Bearer " + token(), Accept: "application/vnd.github+json", ...(opts.headers || {}) },
   });
-  if (!r.ok && r.status !== 404) throw new Error("GitHub " + r.status + " — " + (await r.text()).slice(0, 200));
+  if (!r.ok && r.status !== 404) throw new Error("GitHub " + r.status);
   return r;
 }
 async function getSha(path) {
-  const r = await gh(path);
+  const r = await gh(path + "?ref=main&t=" + Date.now());
   return r.status === 404 ? null : (await r.json()).sha;
 }
 async function putFile(path, base64Content, message) {
   const sha = await getSha(path);
-  const r = await gh(path, {
-    method: "PUT",
-    body: JSON.stringify({ message, content: base64Content, ...(sha ? { sha } : {}) }),
-  });
+  const r = await gh(path, { method: "PUT", body: JSON.stringify({ message, content: base64Content, ...(sha ? { sha } : {}) }) });
   if (!r.ok) throw new Error("Échec écriture " + path);
 }
 const b64 = (str) => btoa(unescape(encodeURIComponent(str)));
+
+/* attend que le site déployé contienne `needle` à `url` */
+async function waitLive(url, needle, onTick) {
+  for (let i = 0; i < 30; i++) {
+    await new Promise((r) => setTimeout(r, 10000));
+    onTick && onTick(i);
+    try {
+      const txt = await (await fetch(url + "?nocache=" + Date.now())).text();
+      if (txt.includes(needle)) return true;
+    } catch (_) {}
+  }
+  return false;
+}
 
 /* ================= chargement ================= */
 async function load() {
@@ -157,7 +203,7 @@ async function load() {
   const mod = new Function(src + ";return {SERVICES, CLIENTS, PROJECTS};")();
   SERVICES = mod.SERVICES; CLIENTS = mod.CLIENTS; PROJECTS = mod.PROJECTS;
   try { blog = await (await fetch("data/blog.json?nocache=" + Date.now())).json(); } catch (_) { blog = []; }
-  renderProjects(); renderArticles();
+  renderProjects(); renderClients(); renderArticles();
   $("#token").value = token();
   $("#status").textContent = token() ? "token enregistré ✓" : "⚠ pas de token (Réglages)";
 }
@@ -165,9 +211,10 @@ async function load() {
 /* ================= projets ================= */
 function renderProjects() {
   $("#projects").innerHTML = PROJECTS.map((p, i) => `
-  <div class="card" data-i="${i}">
+  <div class="card" data-i="${i}" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="dropProj(event,${i})">
     <div class="head-row">
-      <span class="proj-title">${p.title.join(" — ")}</span>
+      <span class="row"><span class="handle" draggable="true" ondragstart="dragProj=${i}" title="Glisser pour réordonner">⠿</span>
+      <span class="proj-title">${p.title.join(" — ")}</span></span>
       <span class="row">
         <span class="tag">${p.images.length} photos</span>
         <button class="mini" onclick="move(${i},-1)">↑</button>
@@ -187,10 +234,10 @@ function renderProjects() {
           ${CLIENTS.map((c) => `<option value="${c.slug}" ${c.slug === p.client ? "selected" : ""}>${c.label}</option>`).join("")}
         </select></div>
       </div>
-      <label>Photos (la première = couverture ; ← → pour l'ordre)</label>
+      <label>Photos — la première = couverture ; glisse une vignette sur une autre pour réordonner</label>
       <div class="thumbs">
         ${p.images.map((im, j) => `
-        <div class="thumb">
+        <div class="thumb" draggable="true" ondragstart="dragImg=${j}" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="dropImg(event,${i},${j})">
           <img src="${im}" loading="lazy">
           <div class="tools">
             <button class="mini" onclick="moveImg(${i},${j},-1)">←</button>
@@ -205,6 +252,21 @@ function renderProjects() {
     </div>
   </div>`).join("");
 }
+function dropProj(e, to) {
+  e.currentTarget.classList.remove("dragover");
+  if (dragProj === null || dragImg !== null) { dragImg = null; return; }
+  const [p] = PROJECTS.splice(dragProj, 1);
+  PROJECTS.splice(to, 0, p);
+  dragProj = null; markDirty(); renderProjects();
+}
+function dropImg(e, proj, to) {
+  e.stopPropagation(); e.currentTarget.classList.remove("dragover");
+  if (dragImg === null) return;
+  const a = PROJECTS[proj].images;
+  const [im] = a.splice(dragImg, 1);
+  a.splice(to, 0, im);
+  dragImg = null; markDirty(); renderProjects(); toggleEdit(proj);
+}
 function toggleEdit(i) { const e = document.querySelector(`.card[data-i="${i}"] .edit`); e.hidden = !e.hidden; }
 function move(i, d) { const j = i + d; if (j < 0 || j >= PROJECTS.length) return; [PROJECTS[i], PROJECTS[j]] = [PROJECTS[j], PROJECTS[i]]; markDirty(); renderProjects(); }
 function delProject(i) { if (!confirm("Supprimer « " + PROJECTS[i].title.join(" — ") + " » ?")) return; PROJECTS.splice(i, 1); markDirty(); renderProjects(); }
@@ -214,8 +276,6 @@ function addProject() {
   PROJECTS.unshift({ id: "projet-" + Date.now(), service: SERVICES[0].slug, client: null, title: ["Nouveau projet"], images: [] });
   markDirty(); renderProjects(); toggleEdit(0);
 }
-
-/* redimensionne côté navigateur (max 1400px, jpeg) puis met en file d'upload */
 function addImgs(i, files) {
   [...files].forEach((f, n) => {
     const img = new Image();
@@ -224,18 +284,16 @@ function addImgs(i, files) {
       const cv = document.createElement("canvas");
       cv.width = Math.round(img.width * r); cv.height = Math.round(img.height * r);
       cv.getContext("2d").drawImage(img, 0, 0, cv.width, cv.height);
-      const dataUrl = cv.toDataURL("image/jpeg", 0.72);
-      const path = `assets/img/uploads/${Date.now()}-${n}-${f.name.replace(/[^a-z0-9.]/gi, "-").toLowerCase()}.jpg`.replace(/\.(png|jpeg|webp|heic)?\.jpg$/i, ".jpg");
-      uploads.push({ path, base64: dataUrl.split(",")[1] });
+      const path = `assets/img/uploads/${Date.now()}-${n}-${slugify(f.name.replace(/\.[^.]+$/, ""))}.jpg`;
+      uploads.push({ path, base64: cv.toDataURL("image/jpeg", 0.72).split(",")[1] });
       PROJECTS[i].images.push(path);
       markDirty(); renderProjects(); toggleEdit(i);
       URL.revokeObjectURL(img.src);
-      toast("Photo ajoutée (sera envoyée à la publication)");
+      toast("Photo ajoutée — sera envoyée à la publication");
     };
     img.src = URL.createObjectURL(f);
   });
 }
-
 function importJSON() {
   try {
     const arr = JSON.parse($("#import-json").value);
@@ -248,10 +306,41 @@ function importJSON() {
   } catch (_) { toast("JSON invalide"); }
 }
 
-/* sérialise js/projects.js dans le même format et publie tout */
+/* ================= clients ================= */
+function renderClients() {
+  $("#clients-list").innerHTML = CLIENTS.map((c, i) => {
+    const n = PROJECTS.filter((p) => p.client === c.slug).length;
+    return `<div class="card"><div class="head-row">
+      <span><b>${c.label}</b> <span class="muted">— ${n ? n + " projet(s)" : "aucun projet (grisé sur le site)"}</span></span>
+      <button class="mini" onclick="delClient(${i})">✕ Supprimer</button>
+    </div></div>`;
+  }).join("");
+}
+function addClient() {
+  const label = $("#new-client").value.trim();
+  if (!label) return;
+  const slug = slugify(label);
+  if (CLIENTS.some((c) => c.slug === slug)) return toast("Ce client existe déjà");
+  CLIENTS.push({ slug, label });
+  CLIENTS.sort((a, b) => a.label.localeCompare(b.label, "fr"));
+  $("#new-client").value = "";
+  markDirty(); renderClients(); renderProjects();
+}
+function delClient(i) {
+  const c = CLIENTS[i];
+  const used = PROJECTS.filter((p) => p.client === c.slug).length;
+  if (used && !confirm(c.label + " est rattaché à " + used + " projet(s), qui passeront en « privé ». Continuer ?")) return;
+  PROJECTS.forEach((p) => { if (p.client === c.slug) p.client = null; });
+  CLIENTS.splice(i, 1);
+  markDirty(); renderClients(); renderProjects();
+}
+
+/* ================= publication projets ================= */
+let lastStamp = "";
 function serialize() {
+  lastStamp = "publie-" + Date.now();
   const lines = PROJECTS.map((p) => "  " + JSON.stringify(p)).join(",\n");
-  return "// Fichier généré par l'admin (" + new Date().toISOString().slice(0, 10) + ")\n"
+  return "// Fichier généré par l'admin — " + lastStamp + "\n"
     + "const SERVICES = " + JSON.stringify(SERVICES) + ";\n"
     + "const CLIENTS = " + JSON.stringify(CLIENTS) + ";\n"
     + "const PROJECTS = [\n" + lines + "\n];\n";
@@ -265,37 +354,52 @@ async function publishProjects() {
       await putFile(uploads[k].path, uploads[k].base64, "Admin : ajout photo");
     }
     uploads = [];
-    $("#save-info").textContent = "Publication des projets…";
-    await putFile("js/projects.js", b64(serialize()), "Admin : mise à jour des projets");
-    dirty = false; $("#savebar").hidden = true;
-    toast("Publié ✓ — en ligne dans 1 à 2 minutes");
-  } catch (e) { toast("Erreur : " + e.message); }
+    $("#save-info").textContent = "Publication…";
+    const content = serialize();
+    await putFile("js/projects.js", b64(content), "Admin : mise à jour des projets");
+    dirty = false;
+    $("#save-info").innerHTML = "Publié ✓ — déploiement en cours…";
+    toast("Publié ✓ — je surveille la mise en ligne");
+    const ok = await waitLive(SITE + "js/projects.js", lastStamp, (i) => { $("#save-info").textContent = "Déploiement en cours… (" + (i + 1) * 10 + "s)"; });
+    $("#save-info").innerHTML = ok ? '<span class="ok">En ligne ✓</span>' : "Publié ✓ (vérification expirée — regarde le site dans quelques minutes)";
+    setTimeout(() => { if (!dirty) $("#savebar").hidden = true; }, 6000);
+  } catch (e) { toast("Erreur : " + e.message); $("#save-info").textContent = "Erreur"; }
   btn.disabled = false;
 }
+
+/* ================= sélecteur de photos ================= */
+function openPicker() {
+  $("#picker-grid").innerHTML = [...new Set(PROJECTS.flatMap((p) => p.images))]
+    .map((im) => `<img src="${im}" loading="lazy" onclick="pickCover('${im}')">`).join("");
+  $("#picker").classList.add("open");
+}
+function closePicker() { $("#picker").classList.remove("open"); }
+function pickCover(im) { $("#a-cover").value = im; closePicker(); }
 
 /* ================= blog ================= */
 function renderArticles() {
   $("#articles").innerHTML = blog.length ? blog.map((a, i) => `
   <div class="card"><div class="head-row">
-    <span><b>${a.title}</b> <span class="muted">— ${a.date} — /blog/${a.slug}.html</span></span>
+    <span><b>${a.title}</b> <span class="muted">— ${a.date} — <a href="blog/${a.slug}.html" target="_blank">voir</a></span></span>
     <span class="row">
       <button class="mini" onclick="editArticle(${i})">Modifier</button>
       <button class="mini" onclick="delArticle(${i})">✕ Supprimer</button>
     </span>
   </div></div>`).join("") : '<p class="muted">Aucun article pour l\'instant.</p>';
 }
-function newArticle() { editingIdx = null; $("#editor").hidden = false; $("#editor-title").textContent = "Nouvel article"; ["a-title", "a-slug", "a-desc", "a-cover", "a-body"].forEach((id) => $("#" + id).value = ""); }
-function editArticle(i) { editingIdx = i; const a = blog[i]; $("#editor").hidden = false; $("#editor-title").textContent = "Modifier : " + a.title; $("#a-title").value = a.title; $("#a-slug").value = a.slug; $("#a-desc").value = a.description; $("#a-cover").value = a.cover || ""; $("#a-body").value = a.body; }
+function newArticle() { editingIdx = null; $("#editor").hidden = false; $("#editor-title").textContent = "Nouvel article"; ["a-title", "a-slug", "a-desc", "a-cover", "a-body"].forEach((id) => $("#" + id).value = ""); $("#a-status").textContent = ""; }
+function editArticle(i) { editingIdx = i; const a = blog[i]; $("#editor").hidden = false; $("#editor-title").textContent = "Modifier : " + a.title; $("#a-title").value = a.title; $("#a-slug").value = a.slug; $("#a-desc").value = a.description; $("#a-cover").value = a.cover || ""; $("#a-body").value = a.body; $("#a-status").textContent = ""; }
 function closeEditor() { $("#editor").hidden = true; }
-function articleHTML(a) {
+function articleHTML(a, stamp) {
   return `<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${a.title} — Claire Creative</title>
 <meta name="description" content="${a.description}">
+<meta name="generator" content="${stamp}">
 <meta property="og:title" content="${a.title}"><meta property="og:description" content="${a.description}">
-${a.cover ? `<meta property="og:image" content="https://devkarma707.github.io/claire-creative/${a.cover}">` : ""}
+${a.cover ? `<meta property="og:image" content="${SITE}${a.cover}">` : ""}
 <link rel="icon" href="../assets/logo-yeux.png">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800&display=swap" rel="stylesheet">
 <style>
@@ -322,20 +426,26 @@ async function publishArticle() {
   if (!token()) return toast("Ajoute d'abord ton token dans Réglages");
   const a = {
     title: $("#a-title").value.trim(),
-    slug: $("#a-slug").value.trim().toLowerCase().replace(/[^a-z0-9-]/g, "-"),
+    slug: slugify($("#a-slug").value),
     description: $("#a-desc").value.trim(),
     cover: $("#a-cover").value.trim(),
     body: $("#a-body").value,
     date: editingIdx !== null ? blog[editingIdx].date : new Date().toLocaleDateString("fr-FR", { year: "numeric", month: "long", day: "numeric" }),
   };
   if (!a.title || !a.slug) return toast("Titre et slug obligatoires");
+  const btn = $("#a-publish"); btn.disabled = true;
   try {
-    await putFile("blog/" + a.slug + ".html", b64(articleHTML(a)), "Admin : article " + a.slug);
+    const stamp = "article-" + Date.now();
+    await putFile("blog/" + a.slug + ".html", b64(articleHTML(a, stamp)), "Admin : article " + a.slug);
     if (editingIdx !== null) blog[editingIdx] = a; else blog.unshift(a);
     await putFile("data/blog.json", b64(JSON.stringify(blog, null, 1)), "Admin : liste du journal");
-    renderArticles(); closeEditor();
-    toast("Article publié ✓ — en ligne dans 1 à 2 minutes");
+    renderArticles();
+    $("#a-status").textContent = "Publié ✓ — déploiement en cours…";
+    toast("Article publié ✓");
+    const ok = await waitLive(SITE + "blog/" + a.slug + ".html", stamp);
+    $("#a-status").innerHTML = ok ? '<span class="ok">En ligne ✓ — <a href="blog/' + a.slug + '.html" target="_blank">voir l\'article</a></span>' : "Publié ✓ (en ligne d'ici quelques minutes)";
   } catch (e) { toast("Erreur : " + e.message); }
+  btn.disabled = false;
 }
 async function delArticle(i) {
   if (!confirm("Supprimer « " + blog[i].title + " » ?")) return;
@@ -349,12 +459,25 @@ async function delArticle(i) {
   } catch (e) { toast("Erreur : " + e.message); }
 }
 
-/* ================= divers ================= */
-function saveToken() { localStorage.setItem("cc-admin-token", $("#token").value.trim()); $("#status").textContent = "token enregistré ✓"; toast("Token enregistré dans ce navigateur"); }
+/* ================= réglages ================= */
+function saveToken() { localStorage.setItem("cc-admin-token", $("#token").value.trim()); $("#status").textContent = "token enregistré ✓"; toast("Token enregistré dans ce navigateur"); testToken(); }
+async function testToken() {
+  const el = $("#token-check");
+  el.textContent = "test en cours…"; el.className = "muted";
+  try {
+    const r = await fetch("https://api.github.com/repos/" + REPO, { headers: { Authorization: "Bearer " + ($("#token").value.trim() || token()) } });
+    if (!r.ok) throw 0;
+    const perms = (await r.json()).permissions || {};
+    if (perms.push) { el.textContent = "connexion OK, écriture autorisée ✓"; el.className = "ok"; }
+    else { el.textContent = "token valide mais SANS droit d'écriture — refais-le avec Contents : Read and write"; el.className = "err"; }
+  } catch (_) { el.textContent = "token invalide ou expiré"; el.className = "err"; }
+}
+
+/* ================= navigation ================= */
 document.querySelectorAll("nav.tabs button").forEach((b) => b.addEventListener("click", () => {
   document.querySelectorAll("nav.tabs button").forEach((x) => x.classList.remove("on"));
   b.classList.add("on");
-  ["projets", "import", "blog", "reglages"].forEach((t) => $("#tab-" + t).hidden = t !== b.dataset.tab);
+  ["projets", "clients", "import", "blog", "reglages"].forEach((t) => $("#tab-" + t).hidden = t !== b.dataset.tab);
 }));
 window.addEventListener("beforeunload", (e) => { if (dirty) e.preventDefault(); });
 load();
