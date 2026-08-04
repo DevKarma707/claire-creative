@@ -206,10 +206,14 @@
     overlayOpen = true;
     overlayTitle.innerHTML = project.title.join(" — ");
     overlayBody.innerHTML = project.images
-      .map((src) => `<img src="${src}" alt="${project.title.join(" — ")}" loading="lazy">`)
+      .map((src, j) => {
+        // taille choisie dans l'admin ; vide = mise en page automatique
+        const size = (project.sizes && project.sizes[j]) || "";
+        return `<img src="${src}" alt="${project.title.join(" — ")}" loading="lazy"${size ? ` class="sz-${size}"` : ""}>`;
+      })
       .join("");
-    // bento : classe selon l'orientation réelle de chaque image
-    overlayBody.querySelectorAll("img").forEach((im) => {
+    // bento : sans taille imposée, on classe selon l'orientation réelle de l'image
+    overlayBody.querySelectorAll("img:not([class])").forEach((im) => {
       const tag = () => im.classList.toggle("port", im.naturalHeight > im.naturalWidth);
       im.complete && im.naturalWidth ? tag() : im.addEventListener("load", tag, { once: true });
     });

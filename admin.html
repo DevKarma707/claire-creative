@@ -35,6 +35,8 @@ button.mini { background:#f2f2f2; border:1px solid #ccc; padding:3px 9px; font-s
 .thumb.dragover { outline:2px dashed #000; }
 .thumb img { width:110px; height:74px; object-fit:cover; display:block; border:1px solid #ddd; pointer-events:none; }
 .thumb .tools { display:flex; gap:2px; margin-top:2px; }
+.thumb select.size { width:110px; margin-top:2px; padding:2px 4px; font-size:11px; border:1px solid #ccc; background:#fff; }
+.thumb select.size:not([data-auto]) { border-color:#000; }
 .muted { color:#777; font-size:12px; }
 .head-row { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
 .proj-title { font-weight:700; text-transform:uppercase; }
@@ -262,11 +264,15 @@ function renderProjects() {
           ${CLIENTS.map((c) => `<option value="${c.slug}" ${c.slug === p.client ? "selected" : ""}>${c.label}</option>`).join("")}
         </select></div>
       </div>
-      <label>Photos — la première = couverture ; glisse une vignette sur une autre pour réordonner</label>
+      <label>Photos — la première = couverture ; glisse une vignette sur une autre pour réordonner.
+        Le menu déroulant règle la place de la photo dans la page du projet.</label>
       <div class="thumbs">
         ${p.images.map((im, j) => `
         <div class="thumb" draggable="true" ondragstart="dragImg=${j}" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="dropImg(event,${i},${j})">
           <img src="${im}" loading="lazy">
+          <select class="size" title="Place de la photo dans la page du projet" onchange="setSize(${i},${j},this.value)">
+            ${SIZES.map((s) => `<option value="${s.v}" ${s.v === sizeOf(p, j) ? "selected" : ""}>${s.label}</option>`).join("")}
+          </select>
           <div class="tools">
             <button class="mini" onclick="moveImg(${i},${j},-1)">←</button>
             <button class="mini" onclick="moveImg(${i},${j},1)">→</button>
@@ -291,16 +297,47 @@ function dropProj(e, to) {
 function dropImg(e, proj, to) {
   e.stopPropagation(); e.currentTarget.classList.remove("dragover");
   if (dragImg === null) return;
-  const a = PROJECTS[proj].images;
+  const p = PROJECTS[proj], a = p.images;
   const [im] = a.splice(dragImg, 1);
   a.splice(to, 0, im);
+  if (p.sizes) { const [s] = p.sizes.splice(dragImg, 1); p.sizes.splice(to, 0, s); }
   dragImg = null; markDirty(); renderProjects(); toggleEdit(proj);
 }
 function toggleEdit(i) { const e = document.querySelector(`.card[data-i="${i}"] .edit`); e.hidden = !e.hidden; }
 function move(i, d) { const j = i + d; if (j < 0 || j >= PROJECTS.length) return; [PROJECTS[i], PROJECTS[j]] = [PROJECTS[j], PROJECTS[i]]; markDirty(); renderProjects(); }
 function delProject(i) { if (!confirm("Supprimer « " + PROJECTS[i].title.join(" — ") + " » ?")) return; PROJECTS.splice(i, 1); markDirty(); renderProjects(); }
-function moveImg(i, j, d) { const a = PROJECTS[i].images, k = j + d; if (k < 0 || k >= a.length) return; [a[j], a[k]] = [a[k], a[j]]; markDirty(); renderProjects(); toggleEdit(i); }
-function delImg(i, j) { PROJECTS[i].images.splice(j, 1); markDirty(); renderProjects(); toggleEdit(i); }
+function moveImg(i, j, d) {
+  const p = PROJECTS[i], a = p.images, k = j + d;
+  if (k < 0 || k >= a.length) return;
+  [a[j], a[k]] = [a[k], a[j]];
+  if (p.sizes) [p.sizes[j], p.sizes[k]] = [p.sizes[k], p.sizes[j]];  /* la taille suit la photo */
+  markDirty(); renderProjects(); toggleEdit(i);
+}
+function delImg(i, j) {
+  const p = PROJECTS[i];
+  p.images.splice(j, 1);
+  if (p.sizes) p.sizes.splice(j, 1);
+  markDirty(); renderProjects(); toggleEdit(i);
+}
+
+/* ---- place de chaque photo dans la page du projet ----
+   `sizes` est optionnel : un projet sans ce champ garde la mise en page
+   automatique d'avant (paysage large, portrait étroit). */
+const SIZES = [
+  { v: "", label: "Automatique" },
+  { v: "s", label: "Petite" },
+  { v: "l", label: "Grande" },
+  { v: "full", label: "Pleine largeur" },
+];
+function sizeOf(p, j) { return (p.sizes && p.sizes[j]) || ""; }
+function setSize(i, j, v) {
+  const p = PROJECTS[i];
+  if (!p.sizes) p.sizes = p.images.map(() => "");
+  while (p.sizes.length < p.images.length) p.sizes.push("");
+  p.sizes[j] = v;
+  if (p.sizes.every((s) => !s)) delete p.sizes;   /* tout en auto : on n'alourdit pas le fichier */
+  markDirty();
+}
 function addProject() {
   PROJECTS.unshift({ id: "projet-" + Date.now(), service: SERVICES[0].slug, client: null, title: ["Nouveau projet"], images: [] });
   markDirty(); renderProjects(); toggleEdit(0);
@@ -319,6 +356,7 @@ function addImgs(i, files) {
       const data = WEBP_OK ? cv.toDataURL("image/webp", 0.7) : cv.toDataURL("image/jpeg", 0.72);
       uploads.push({ path, base64: data.split(",")[1] });
       PROJECTS[i].images.push(path);
+      if (PROJECTS[i].sizes) PROJECTS[i].sizes.push("");
       markDirty(); renderProjects(); toggleEdit(i);
       URL.revokeObjectURL(img.src);
       toast("Photo ajoutée — sera envoyée à la publication");
@@ -330,7 +368,11 @@ function importJSON() {
   try {
     const arr = JSON.parse($("#import-json").value);
     if (!Array.isArray(arr)) throw 0;
-    arr.forEach((p) => PROJECTS.unshift({ id: p.id || "projet-" + Date.now(), service: p.service || SERVICES[0].slug, client: p.client || null, title: p.title || ["Sans titre"], images: p.images || [] }));
+    arr.forEach((p) => PROJECTS.unshift({
+      id: p.id || "projet-" + Date.now(), service: p.service || SERVICES[0].slug,
+      client: p.client || null, title: p.title || ["Sans titre"], images: p.images || [],
+      ...(Array.isArray(p.sizes) && p.sizes.some(Boolean) ? { sizes: p.sizes } : {}),
+    }));
     $("#import-json").value = "";
     markDirty(); renderProjects();
     toast(arr.length + " projet(s) ajouté(s) — pense à publier");
@@ -442,8 +484,12 @@ function askMoveTo(i, j) {
 }
 function doMoveTo(t) {
   const { proj, img } = moveFrom;
-  const [im] = PROJECTS[proj].images.splice(img, 1);
-  PROJECTS[t].images.push(im);
+  const src = PROJECTS[proj], dst = PROJECTS[t];
+  const [im] = src.images.splice(img, 1);
+  const taille = src.sizes ? src.sizes.splice(img, 1)[0] : "";
+  dst.images.push(im);
+  if (taille) { if (!dst.sizes) dst.sizes = dst.images.map(() => ""); dst.sizes[dst.images.length - 1] = taille; }
+  else if (dst.sizes) dst.sizes.push("");
   closeProjPicker();
   markDirty(); renderProjects(); toggleEdit(t);
   toast("Photo déplacée vers « " + PROJECTS[t].title.join(" — ") + " »");

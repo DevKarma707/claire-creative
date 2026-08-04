@@ -449,10 +449,15 @@ body.has-field { overflow: hidden; height: 100svh; }
 }
 #project-overlay .po-images img.port { grid-column: span 1; grid-row: span 2; }
 #project-overlay .po-images img:first-child { grid-column: span 2; grid-row: span 2; }
+/* tailles choisies photo par photo dans l'admin (priment sur l'automatique) */
+#project-overlay .po-images img.sz-s { grid-column: span 1; grid-row: span 2; }
+#project-overlay .po-images img.sz-l { grid-column: span 2; grid-row: span 3; }
+#project-overlay .po-images img.sz-full { grid-column: 1 / -1; grid-row: span 3; }
 @media (max-width: 700px) {
   #project-overlay .po-images { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 24vh; }
   #project-overlay .po-images img, #project-overlay .po-images img:first-child { grid-column: span 2; grid-row: span 2; }
-  #project-overlay .po-images img.port { grid-column: span 1; grid-row: span 2; }
+  #project-overlay .po-images img.port, #project-overlay .po-images img.sz-s { grid-column: span 1; grid-row: span 2; }
+  #project-overlay .po-images img.sz-l, #project-overlay .po-images img.sz-full { grid-column: 1 / -1; grid-row: span 3; }
 }
 @keyframes poIn { from { opacity: 0; transform: scale(0.96) translateY(24px); } }
 body.po-open #field { pointer-events: none; }
