@@ -8,6 +8,7 @@
 <link rel="icon" href="assets/logo-yeux.png">
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
+[hidden] { display:none !important; }   /* sinon .savebar (display:flex) reste visible en permanence */
 body { font-family:"Helvetica Neue",Helvetica,Arial,sans-serif; background:#fff; color:#000; font-size:14px; line-height:1.5; }
 header { display:flex; align-items:center; justify-content:space-between; padding:16px 3vw; border-bottom:1px solid #000; }
 header h1 { font-size:15px; text-transform:uppercase; letter-spacing:.12em; }
@@ -54,6 +55,7 @@ button.mini { background:#f2f2f2; border:1px solid #ccc; padding:3px 9px; font-s
 #picker .grid { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
 #picker img { width:130px; height:88px; object-fit:cover; cursor:pointer; border:1px solid #ddd; }
 #picker img:hover { outline:2px solid #000; }
+#picker img.sel { outline:4px solid #000; outline-offset:2px; }
 @media (max-width:700px){ .grid2,.grid3{grid-template-columns:1fr} }
 </style>
 </head>
@@ -65,6 +67,7 @@ button.mini { background:#f2f2f2; border:1px solid #ccc; padding:3px 9px; font-s
 <nav class="tabs">
   <button data-tab="projets" class="on">Projets</button>
   <button data-tab="clients">Clients</button>
+  <button data-tab="trail">Traînée « À propos »</button>
   <button data-tab="import">Import JSON</button>
   <button data-tab="blog">Journal / Blog</button>
   <button data-tab="reglages">Réglages</button>
@@ -86,6 +89,19 @@ button.mini { background:#f2f2f2; border:1px solid #ccc; padding:3px 9px; font-s
       <input type="text" id="new-client" placeholder="Nom du client (ex. Hermès)" style="max-width:320px">
       <button class="b ghost" onclick="addClient()">+ Ajouter</button>
     </div>
+  </section>
+
+  <section id="tab-trail" hidden>
+    <h2>Traînée d'images — page « À propos »</h2>
+    <p class="muted">Ces photos apparaissent une par une, sous le curseur, quand le visiteur balaie le haut de la page <a href="about.html" target="_blank">À propos</a>.<br>
+    Conseil : 8 à 14 photos bien différentes les unes des autres (couleurs, cadrages, ambiances) — c'est le contraste entre elles qui rend l'effet beau. L'ordre est celui d'apparition.<br>
+    Si tu ne choisis rien, le site prend automatiquement la photo de couverture des 12 premiers projets. La mise en ligne se fait avec le bouton « Publier » en bas.</p>
+    <p class="row" style="margin:14px 0">
+      <button class="b ghost" onclick="openPicker('trail')">+ Choisir des photos</button>
+      <button class="b ghost" onclick="clearTrail()">Tout retirer</button>
+      <span class="muted"><b id="trail-count">0</b> photo(s) — <a href="about.html" target="_blank">voir la page</a></span>
+    </p>
+    <div class="thumbs" id="trail-thumbs"></div>
   </section>
 
   <section id="tab-import" hidden>
@@ -148,7 +164,7 @@ button.mini { background:#f2f2f2; border:1px solid #ccc; padding:3px 9px; font-s
 </div>
 <div id="toast"></div>
 <div id="picker">
-  <div class="head-row"><h2>Choisir une photo</h2><button class="b ghost" onclick="closePicker()">Fermer</button></div>
+  <div class="head-row"><h2 id="picker-head">Choisir une photo</h2><button class="b ghost" onclick="closePicker()">Fermer</button></div>
   <div class="grid" id="picker-grid"></div>
 </div>
 <div id="projpicker">
@@ -161,12 +177,12 @@ button.mini { background:#f2f2f2; border:1px solid #ccc; padding:3px 9px; font-s
 const REPO = "DevKarma707/claire-creative";
 const API = "https://api.github.com/repos/" + REPO + "/contents/";
 const SITE = location.origin.includes("github.io") ? "https://devkarma707.github.io/claire-creative/" : location.origin + "/";
-let SERVICES = [], CLIENTS = [], PROJECTS = [];
+let SERVICES = [], CLIENTS = [], PROJECTS = [], TRAIL = [];
 let uploads = [];      // {path, base64} photos à envoyer à la publication
 let blog = [];
 let editingIdx = null;
 let dirty = false;
-let dragProj = null, dragImg = null;
+let dragProj = null, dragImg = null, dragTrail = null;
 
 const $ = (s) => document.querySelector(s);
 const token = () => localStorage.getItem("cc-admin-token") || "";
@@ -210,10 +226,10 @@ async function waitLive(url, needle, onTick) {
 /* ================= chargement ================= */
 async function load() {
   const src = await (await fetch("js/projects.js?nocache=" + Date.now())).text();
-  const mod = new Function(src + ";return {SERVICES, CLIENTS, PROJECTS};")();
-  SERVICES = mod.SERVICES; CLIENTS = mod.CLIENTS; PROJECTS = mod.PROJECTS;
+  const mod = new Function(src + ";return {SERVICES, CLIENTS, PROJECTS, TRAIL: typeof TRAIL === 'undefined' ? [] : TRAIL};")();
+  SERVICES = mod.SERVICES; CLIENTS = mod.CLIENTS; PROJECTS = mod.PROJECTS; TRAIL = mod.TRAIL;
   try { blog = await (await fetch("data/blog.json?nocache=" + Date.now())).json(); } catch (_) { blog = []; }
-  renderProjects(); renderClients(); renderArticles();
+  renderProjects(); renderClients(); renderTrail(); renderArticles();
   $("#token").value = token();
   $("#status").textContent = token() ? "token enregistré ✓" : "⚠ pas de token (Réglages)";
 }
@@ -346,6 +362,35 @@ function delClient(i) {
   markDirty(); renderClients(); renderProjects();
 }
 
+/* ================= traînée « À propos » ================= */
+function renderTrail() {
+  $("#trail-count").textContent = TRAIL.length;
+  $("#trail-thumbs").innerHTML = TRAIL.length
+    ? TRAIL.map((im, i) => `
+      <div class="thumb" draggable="true" ondragstart="dragTrail=${i}" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="dropTrail(event,${i})">
+        <img src="${im}" loading="lazy">
+        <div class="tools">
+          <button class="mini" onclick="moveTrail(${i},-1)">←</button>
+          <button class="mini" onclick="moveTrail(${i},1)">→</button>
+          <button class="mini" onclick="delTrail(${i})">✕</button>
+        </div>
+      </div>`).join("")
+    : '<p class="muted">Aucune photo choisie — le site utilise la couverture des 12 premiers projets.</p>';
+}
+function moveTrail(i, d) { const j = i + d; if (j < 0 || j >= TRAIL.length) return; [TRAIL[i], TRAIL[j]] = [TRAIL[j], TRAIL[i]]; markDirty(); renderTrail(); }
+function delTrail(i) { TRAIL.splice(i, 1); markDirty(); renderTrail(); }
+function dropTrail(e, to) {
+  e.currentTarget.classList.remove("dragover");
+  if (dragTrail === null) return;
+  const [im] = TRAIL.splice(dragTrail, 1);
+  TRAIL.splice(to, 0, im);
+  dragTrail = null; markDirty(); renderTrail();
+}
+function clearTrail() {
+  if (!TRAIL.length || !confirm("Retirer les " + TRAIL.length + " photos de la traînée ? Le site reprendra la sélection automatique.")) return;
+  TRAIL = []; markDirty(); renderTrail();
+}
+
 /* ================= publication projets ================= */
 let lastStamp = "";
 function serialize() {
@@ -354,6 +399,7 @@ function serialize() {
   return "// Fichier généré par l'admin — " + lastStamp + "\n"
     + "const SERVICES = " + JSON.stringify(SERVICES) + ";\n"
     + "const CLIENTS = " + JSON.stringify(CLIENTS) + ";\n"
+    + "const TRAIL = " + JSON.stringify(TRAIL) + ";\n"
     + "const PROJECTS = [\n" + lines + "\n];\n";
 }
 async function publishProjects() {
@@ -400,13 +446,27 @@ function doMoveTo(t) {
 function closeProjPicker() { $("#projpicker").classList.remove("open"); moveFrom = null; }
 
 /* ================= sélecteur de photos ================= */
-function openPicker() {
+/* deux usages : couverture d'article ("cover", un seul clic) et traînée ("trail", on coche/décoche) */
+let pickerTarget = "cover";
+function openPicker(target) {
+  pickerTarget = target || "cover";
+  const trail = pickerTarget === "trail";
+  $("#picker-head").textContent = trail ? "Photos de la traînée — clique pour ajouter ou retirer" : "Choisir une photo";
   $("#picker-grid").innerHTML = [...new Set(PROJECTS.flatMap((p) => p.images))]
-    .map((im) => `<img src="${im}" loading="lazy" onclick="pickCover('${im}')">`).join("");
+    .map((im) => `<img src="${im}" loading="lazy" class="${trail && TRAIL.includes(im) ? "sel" : ""}" onclick="pick('${im}')">`).join("");
   $("#picker").classList.add("open");
 }
 function closePicker() { $("#picker").classList.remove("open"); }
-function pickCover(im) { $("#a-cover").value = im; closePicker(); }
+function pick(im) {
+  if (pickerTarget === "trail") {
+    const i = TRAIL.indexOf(im);
+    if (i >= 0) TRAIL.splice(i, 1); else TRAIL.push(im);
+    markDirty(); renderTrail(); openPicker("trail");
+    return;
+  }
+  $("#a-cover").value = im;
+  closePicker();
+}
 
 /* ================= blog ================= */
 function renderArticles() {
@@ -509,7 +569,7 @@ async function testToken() {
 document.querySelectorAll("nav.tabs button").forEach((b) => b.addEventListener("click", () => {
   document.querySelectorAll("nav.tabs button").forEach((x) => x.classList.remove("on"));
   b.classList.add("on");
-  ["projets", "clients", "import", "blog", "reglages"].forEach((t) => $("#tab-" + t).hidden = t !== b.dataset.tab);
+  ["projets", "clients", "trail", "import", "blog", "reglages"].forEach((t) => $("#tab-" + t).hidden = t !== b.dataset.tab);
 }));
 window.addEventListener("beforeunload", (e) => { if (dirty) e.preventDefault(); });
 load();

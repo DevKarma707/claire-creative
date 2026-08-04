@@ -12,6 +12,9 @@
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
+/* l'attribut hidden doit toujours gagner : sinon un display: en classe le neutralise
+   (c'est ce qui laissait le ✕ du chip client visible en permanence dans le menu) */
+[hidden] { display: none !important; }
 html { scroll-behavior: smooth; }
 body {
   background: var(--cream);
@@ -479,8 +482,58 @@ body.po-open #field { pointer-events: none; }
 .about-imgs img { width: 100%; aspect-ratio: 4/5; object-fit: cover; }
 .about-imgs img:nth-child(2) { width: 72%; justify-self: end; margin-top: -10%; aspect-ratio: 1; }
 
+/* ---------- traînée d'images au curseur (hero À propos) ---------- */
+.trail {
+  position: relative; overflow: hidden;
+  min-height: 58svh;
+  display: grid; place-content: center;
+  padding: 8vh 4vw 9vh;
+  background: var(--cream);
+  cursor: crosshair;
+}
+.trail img {
+  position: absolute; z-index: 1;
+  width: clamp(120px, 14vw, 210px);
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.24);
+  transition: transform 0.6s var(--ease), opacity 0.45s ease;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+.trail img[data-status="active"] { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+/* texte en blanc : le blend difference le rend noir sur fond blanc, clair sur les photos */
+.trail .trail-copy {
+  position: relative; z-index: 60;
+  color: #fff; mix-blend-mode: difference;
+  text-align: center; pointer-events: none;
+}
+.trail .trail-copy h1 {
+  font-family: var(--serif); font-weight: 500;
+  font-size: clamp(44px, 9vw, 130px); line-height: 0.95; text-transform: uppercase;
+  letter-spacing: -0.01em;
+}
+/* sous-titre : hors de la zone d'images, pour rester lisible */
+.trail-lead {
+  padding: 1vh 4vw 6vh;
+  color: var(--ink-soft); font-size: 16px; max-width: 520px;
+}
+.trail .trail-cue {
+  position: absolute; bottom: 26px; left: 50%; transform: translateX(-50%);
+  z-index: 60; color: #fff; mix-blend-mode: difference;
+  font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase;
+  white-space: nowrap;
+}
+.trail .trail-cue::before { content: "Déplacez le curseur"; }
+@media (pointer: coarse) { .trail .trail-cue::before { content: "Balayez l'écran"; } }
+/* pas d'effet (aucune photo réglée, ou mouvement réduit) : hero classique */
+.trail.no-trail { min-height: 0; padding: 22vh 4vw 6vh; cursor: auto; }
+.trail.no-trail .trail-cue { display: none; }
+
 /* ---------- responsive ---------- */
 @media (max-width: 860px) {
+  .trail { min-height: 56svh; padding: 16vh 4vw 7vh; }
   header { grid-template-columns: 1fr; gap: 10px 0; padding: 14px 4vw 8px; }
   nav.main a { font-size: clamp(19px, 5.6vw, 26px); }
   .service { grid-template-columns: 40px 1fr; }
