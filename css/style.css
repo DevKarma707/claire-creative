@@ -424,9 +424,14 @@ body.has-field { overflow: hidden; height: 100svh; }
   font-family: var(--sans); font-weight: 800;
   font-size: clamp(20px, 3.6vw, 30px); line-height: 1.05;
   text-align: center; text-transform: uppercase;
-  color: #fff; mix-blend-mode: difference;
+  /* noir sur un voile blanc, partout : lisible sur photo claire comme sombre,
+     et raccord avec le reste du site, écrit en noir */
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.92);
+  padding: 14px 16px;
   width: min(480px, calc(100vw - 32px));
 }
+.fcard .fcard-img { position: relative; }
 /* ---------- overlay projet : l'image s'agrandit, on scrolle les images du projet ---------- */
 #project-overlay {
   position: fixed; inset: 0; z-index: 1500;
@@ -611,13 +616,6 @@ html.intro-on #loader { display: none !important; }
   nav.main a { font-size: clamp(19px, 5.6vw, 26px); }
   .service { grid-template-columns: 40px 1fr; }
   .service p { grid-column: 2; }
-  /* petit écran : l'inversion de couleurs devient illisible sur les photos.
-     Titre en noir sur un voile blanc — lisible sur photo claire comme sombre. */
-  #field-title {
-    color: var(--ink); mix-blend-mode: normal;
-    background: rgba(255, 255, 255, 0.9);
-    padding: 12px 14px;
-  }
   .about-grid { grid-template-columns: 1fr; }
   .about-imgs { position: static; }
   .client-row small { display: none; }
