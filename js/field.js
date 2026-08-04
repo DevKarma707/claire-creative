@@ -21,6 +21,9 @@
   let scroll = 0, target = 0;
   let hovered = null;
   let titleW = 0, titleH = 0;   // taille du titre survolé, mesurée à l'entrée
+  /* agrandissement de la photo survolée : elle doit rester nettement plus grande
+     que son bandeau de titre, sinon le titre la recouvre au lieu de la légender */
+  const HOVER_SCALE = 1.95;
   let current = [];      // projets filtrés courants
   let CW = 0, CH = 0;
   let COLS = 2;
@@ -141,7 +144,7 @@
     field.classList.add("dimmed");
     card.el.classList.add("hot");
     for (const c of cards) {
-      if (c === card) { c.ths = 1.5; c.thx = 0; c.thy = 0; continue; }
+      if (c === card) { c.ths = HOVER_SCALE; c.thx = 0; c.thy = 0; continue; }
       let dx = 0.2 * (c.baseX - card.baseX);
       let dy = 0.2 * (c.baseY - card.baseY);
       dx = Math.min(Math.max(-300, dx), 300);
@@ -152,6 +155,9 @@
     }
     titleEl.innerHTML = card.project.title.join("<br>");
     titleEl.style.display = "block";
+    /* le bandeau reste plus étroit que la photo agrandie, quelle que soit la
+       taille de l'écran : une largeur fixe déborderait sur les petites fenêtres */
+    titleEl.style.width = Math.round(Math.min(CW * HOVER_SCALE * 0.7, innerWidth - 40)) + "px";
     /* mesuré une seule fois par survol : la boucle d'animation ne doit pas
        relire la taille à chaque image */
     titleW = titleEl.offsetWidth;
