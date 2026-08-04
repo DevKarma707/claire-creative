@@ -67,7 +67,9 @@ h1 em, h2 em, .section-head h2 em, .page-hero h1 em { font-style: normal; }
 header {
   position: sticky; top: 0; z-index: 900;
   display: grid;
-  grid-template-columns: 150px 1fr;
+  /* assez large pour les yeux + le nom dans sa typo de marque, qui est plus
+     encombrante que l'ancienne : trop étroit, le nom passait sous le menu */
+  grid-template-columns: clamp(165px, 14vw, 210px) 1fr;
   gap: 0 18px;
   align-items: start;
   padding: 18px 4vw 10px;
@@ -81,9 +83,13 @@ header.nav-hidden { opacity: 0; transform: translateY(-12px); }
 header.nav-hidden a, header.nav-hidden button { pointer-events: none; }
 .brand { display: flex; align-items: flex-start; gap: 10px; margin-top: 4px; }
 .brand-text { display: block; }
+/* le nom du studio dans sa typo de marque — la même que sur l'écran d'accueil
+   et que sur le site d'origine de Claire */
 .brand .wordmark {
   display: block;
-  font-weight: 700; font-size: 11px; letter-spacing: 0.13em; line-height: 1.3;
+  font-family: "Dela Gothic One", var(--sans);
+  font-weight: 400; font-size: clamp(13px, 1.2vw, 20px);
+  letter-spacing: 0.02em; line-height: 1.15;
   text-transform: uppercase; white-space: nowrap;
 }
 .brand .tagline {
@@ -121,7 +127,8 @@ nav.main button:hover { transform: translateX(18px); }
   pointer-events: auto;
   display: block; margin-top: 10px;
   background: rgba(255,255,255,0.16); border-radius: 6px;
-  font-size: 18px !important; line-height: 1 !important;
+  /* même taille que le ✕ des catégories, pour que les deux repères se répondent */
+  font-size: clamp(14px, 1.6vw, 27px) !important; line-height: 1 !important;
   padding: 4px 12px 9px !important; cursor: pointer;
 }
 .nav-dots:hover { animation: none; opacity: 0.7; }
@@ -163,7 +170,7 @@ nav.main.client-mode .cats, nav.main.client-mode .nav-dots, nav.main.client-mode
 #clients-overlay .off:hover { transform: none; }
 nav.main a .x {
   display: none;
-  font-size: 0.55em; vertical-align: 0.28em; margin-left: 0.25em;
+  font-size: clamp(14px, 1.6vw, 27px); vertical-align: 0.18em; margin-left: 0.3em;
 }
 /* catégorie active : les autres disparaissent, un ✕ apparaît (comme la référence) */
 nav.main .cats.has-category li:not(.is-active) { display: none; }
