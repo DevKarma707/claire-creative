@@ -30,6 +30,21 @@
   const lerp = (a, b, t) => a + (b - a) * t;
   const mod = (n, m) => ((n % m) + m) % m;
 
+  /* Cadrage réglé dans l'admin, photo par photo : point de la photo à garder au
+     centre du cadre, zoom, et « photo entière » pour ne rien couper.
+     Sans réglage, comportement d'avant : recadrage au centre. */
+  function styleCadrage(project, j) {
+    const c = project.crops && project.crops[j];
+    if (!c) return "";
+    const parts = [];
+    if (c.fit === "contain") parts.push("object-fit:contain", "background:var(--cream-2)");
+    if (c.x != null || c.y != null) parts.push(`object-position:${c.x ?? 50}% ${c.y ?? 50}%`);
+    /* propriété « scale » et non « transform », pour ne pas entrer en conflit
+       avec les transformations d'animation */
+    if (c.z && c.z !== 1) parts.push(`scale:${c.z}`);
+    return parts.length ? ` style="${parts.join(";")}"` : "";
+  }
+
   function layoutParams() {
     const w = window.innerWidth;
     COLS = w < 640 ? 2 : 4;
@@ -49,8 +64,8 @@
     cards = [];
     colH = [];
     layoutParams();
-    /* plus d'air entre les rangées sur petit écran : la légende s'y loge */
-    const gapY = CH * (window.innerWidth <= 860 ? 0.78 : 0.55);
+    /* plus d'air entre les rangées là où les légendes s'affichent (appareil tactile) */
+    const gapY = CH * (isTouch ? 0.78 : 0.55);
     const rows = Math.ceil(current.length / COLS);
     // espace blanc au chargement : sous le menu complet
     const firstOffset = Math.max(window.innerHeight * 0.42, header.offsetHeight + 30);
@@ -63,11 +78,11 @@
       el.className = "fcard";
       el.style.width = CW + "px";
       el.style.height = CH + "px";
-      /* le titre sous la carte ne sert qu'aux petits écrans, où il n'y a pas de
-         survol : il est posé en dessous sans entrer dans le calcul des positions */
+      /* le titre sous la carte ne sert qu'aux appareils sans survol : il est posé
+         en dessous sans entrer dans le calcul des positions */
       const [nom, ...reste] = project.title;
       el.innerHTML =
-        `<img src="${project.images[0]}" loading="lazy" draggable="false" alt="${project.title.join(" — ")}">` +
+        `<div class="fcard-img"><img src="${project.images[0]}" loading="lazy" draggable="false" alt="${project.title.join(" — ")}"${styleCadrage(project, 0)}></div>` +
         `<span class="fcard-title"><b>${nom}</b>${reste.length ? `<i>${reste.join(" — ")}</i>` : ""}</span>`;
       el.dataset.i = i;
       field.appendChild(el);
@@ -209,12 +224,14 @@
       .map((src, j) => {
         // taille choisie dans l'admin ; vide = mise en page automatique
         const size = (project.sizes && project.sizes[j]) || "";
-        return `<img src="${src}" alt="${project.title.join(" — ")}" loading="lazy"${size ? ` class="sz-${size}"` : ""}>`;
+        return `<div class="po-cell${size ? " sz-" + size : ""}">` +
+          `<img src="${src}" alt="${project.title.join(" — ")}" loading="lazy"${styleCadrage(project, j)}></div>`;
       })
       .join("");
     // bento : sans taille imposée, on classe selon l'orientation réelle de l'image
-    overlayBody.querySelectorAll("img:not([class])").forEach((im) => {
-      const tag = () => im.classList.toggle("port", im.naturalHeight > im.naturalWidth);
+    overlayBody.querySelectorAll(".po-cell:not([class*='sz-'])").forEach((cell) => {
+      const im = cell.querySelector("img");
+      const tag = () => cell.classList.toggle("port", im.naturalHeight > im.naturalWidth);
       im.complete && im.naturalWidth ? tag() : im.addEventListener("load", tag, { once: true });
     });
     overlay.classList.add("open");

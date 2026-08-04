@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comparatif — haut de la page À propos</title>
+<meta name="robots" content="noindex">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --ink:#000; --ink-soft:#555; --line:rgba(0,0,0,.15); --ease:cubic-bezier(.22,1,.36,1); }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:"Archivo",Helvetica,Arial,sans-serif; background:#fff; color:#000; line-height:1.6; font-size:15px; }
+  .wrap { padding:4vh 4vw 12vh; }
+  .page-title { font-size:13px; letter-spacing:.2em; text-transform:uppercase; }
+  .page-intro { color:#555; max-width:680px; margin:8px 0 4vh; }
+
+  .case { border-top:1px solid #ddd; padding-top:3vh; margin-bottom:9vh; }
+  .case > .tag { font-size:11px; letter-spacing:.22em; text-transform:uppercase; color:#888; margin-bottom:26px; display:block; }
+  .case > .tag b { color:#000; }
+
+  /* rappel du menu, en plus petit, pour situer le titre par rapport à lui */
+  .fakenav { color:#bbb; font-weight:700; text-transform:uppercase; font-size:15px; line-height:1.25; margin-bottom:26px; }
+  .fakenav em { font-style:normal; font-size:10px; letter-spacing:.2em; display:block; margin-bottom:4px; color:#ccc; }
+
+  .txt p { margin-bottom:16px; color:var(--ink-soft); }
+  .txt p strong { color:var(--ink); font-weight:600; }
+  /* dans ce comparatif les photos sont bornées, sinon elles noient la comparaison
+     en fenêtre étroite ; sur la vraie page elles gardent leur taille normale */
+  .imgs img { width:100%; aspect-ratio:4/5; object-fit:cover; display:block; max-height:300px; }
+
+  /* ============ A — actuel ============ */
+  .a .hero { padding:8vh 0 4vh; }
+  .a .hero h1 { font-size:clamp(44px,9vw,130px); line-height:.95; text-transform:uppercase; font-weight:500; }
+  .a .hero .lead { margin-top:2vh; max-width:520px; color:var(--ink-soft); }
+  .a .grid { display:grid; grid-template-columns:1.15fr .85fr; gap:5vw; align-items:start; margin-top:4vh; }
+  .a .imgs { display:grid; gap:16px; }
+  .a .imgs img:nth-child(2) { width:72%; justify-self:end; margin-top:-8%; aspect-ratio:1; }
+
+  /* ============ B — le texte devient l'accroche ============ */
+  .b .kicker { font-size:11px; letter-spacing:.28em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:3vh; }
+  .b .grid { display:grid; grid-template-columns:1.2fr .8fr; gap:5vw; align-items:start; }
+  .b .accroche { font-size:clamp(22px,2.9vw,38px); line-height:1.22; font-weight:500; color:var(--ink); margin-bottom:4vh; letter-spacing:-.01em; }
+  .b .imgs { display:grid; gap:16px; }
+  .b .imgs img:nth-child(2) { width:72%; justify-self:end; margin-top:-8%; aspect-ratio:1; }
+
+  /* ============ C — titre et texte côte à côte ============ */
+  .c .grid { display:grid; grid-template-columns:.9fr 1.4fr; gap:5vw; align-items:start; }
+  .c h1 { font-size:clamp(34px,4.6vw,68px); line-height:.98; text-transform:uppercase; font-weight:500; position:sticky; top:20px; }
+  .c h1 span { display:block; font-size:11px; letter-spacing:.25em; font-weight:700; color:var(--ink-soft); margin-top:14px; }
+  .c .imgs { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:4vh; }
+
+  /* ============ D — photo en bandeau, titre posé dessus ============ */
+  .d .banner { position:relative; height:44svh; min-height:280px; overflow:hidden; }
+  .d .banner img { width:100%; height:100%; object-fit:cover; }
+  .d .banner h1 { position:absolute; left:0; bottom:14px; font-size:clamp(38px,7vw,104px); line-height:.95;
+                  text-transform:uppercase; font-weight:500; color:#fff; mix-blend-mode:difference; }
+  .d .grid { display:grid; grid-template-columns:1.15fr .85fr; gap:5vw; align-items:start; margin-top:5vh; }
+  .d .imgs img { aspect-ratio:1; }
+
+  @media (max-width:860px){
+    .a .grid, .b .grid, .c .grid, .d .grid { grid-template-columns:1fr; gap:4vh; }
+    .c h1 { position:static; }
+    .a .imgs img:nth-child(2), .b .imgs img:nth-child(2) { width:100%; margin-top:0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<p class="page-title">Haut de la page À propos — comparatif</p>
+<p class="page-intro">Le menu géant est rappelé en gris clair au-dessus de chaque variante, pour situer le titre par rapport à lui. Réduis la fenêtre pour voir le rendu mobile. Dis-moi la lettre.</p>
+
+<!-- A -->
+<div class="case a">
+  <span class="tag"><b>A — Actuel</b> · titre géant sous un menu déjà géant</span>
+  <div class="fakenav"><em>Menu du site</em>Creative Direction &amp; Curation<br>Special Projects &amp; Events<br>Production</div>
+  <div class="hero">
+    <h1>À propos</h1>
+    <p class="lead">Claire Deroo — directrice artistique, fondatrice du studio.</p>
+  </div>
+  <div class="grid">
+    <div class="txt">
+      <p><strong>Claire Creative est un studio de direction artistique et de production événementielle basé à Paris</strong>, fondé par Claire Deroo, directrice artistique.</p>
+      <p>Le studio conçoit des événements à forte identité visuelle, en France et à l'international.</p>
+    </div>
+    <div class="imgs">
+      <img src="assets/img/interiors/interiors-02.webp" alt="">
+      <img src="assets/img/weddings/weddings-10.webp" alt="">
+    </div>
+  </div>
+</div>
+
+<!-- B -->
+<div class="case b">
+  <span class="tag"><b>B — Le texte devient l'accroche</b> · « À propos » passe en petit surtitre, la première phrase est mise en avant</span>
+  <div class="fakenav"><em>Menu du site</em>Creative Direction &amp; Curation<br>Special Projects &amp; Events<br>Production</div>
+  <p class="kicker">À propos — Claire Deroo, directrice artistique</p>
+  <div class="grid">
+    <div>
+      <p class="accroche">Claire Creative est un studio de direction artistique et de production événementielle basé à Paris.</p>
+      <div class="txt">
+        <p>Le studio conçoit des événements à forte identité visuelle, en France et à l'international. Mariages, dîners privés, lancements de marque, projets corporate.</p>
+        <p>L'approche du studio associe sens du détail, cohérence esthétique et maîtrise logistique.</p>
+      </div>
+    </div>
+    <div class="imgs">
+      <img src="assets/img/interiors/interiors-02.webp" alt="">
+      <img src="assets/img/weddings/weddings-10.webp" alt="">
+    </div>
+  </div>
+</div>
+
+<!-- C -->
+<div class="case c">
+  <span class="tag"><b>C — Titre et texte côte à côte</b> · titre plus petit à gauche, qui reste en place pendant qu'on lit</span>
+  <div class="fakenav"><em>Menu du site</em>Creative Direction &amp; Curation<br>Special Projects &amp; Events<br>Production</div>
+  <div class="grid">
+    <h1>À propos<span>Claire Deroo, directrice artistique</span></h1>
+    <div>
+      <div class="txt">
+        <p><strong>Claire Creative est un studio de direction artistique et de production événementielle basé à Paris</strong>, fondé par Claire Deroo, directrice artistique.</p>
+        <p>Le studio conçoit des événements à forte identité visuelle, en France et à l'international. Mariages, dîners privés, lancements de marque, projets corporate : chaque production est pensée avec une direction claire.</p>
+      </div>
+      <div class="imgs">
+        <img src="assets/img/interiors/interiors-02.webp" alt="">
+        <img src="assets/img/weddings/weddings-10.webp" alt="">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- D -->
+<div class="case d">
+  <span class="tag"><b>D — Photo en bandeau, titre posé dessus</b> · plus spectaculaire, dans l'esprit de l'écran d'accueil</span>
+  <div class="fakenav"><em>Menu du site</em>Creative Direction &amp; Curation<br>Special Projects &amp; Events<br>Production</div>
+  <div class="banner">
+    <img src="assets/img/covers/covers-02.webp" alt="">
+    <h1>À propos</h1>
+  </div>
+  <div class="grid">
+    <div class="txt">
+      <p><strong>Claire Creative est un studio de direction artistique et de production événementielle basé à Paris</strong>, fondé par Claire Deroo, directrice artistique.</p>
+      <p>Le studio conçoit des événements à forte identité visuelle, en France et à l'international.</p>
+    </div>
+    <div class="imgs">
+      <img src="assets/img/weddings/weddings-10.webp" alt="">
+    </div>
+  </div>
+</div>
+
+</div>
+</body>
+</html>

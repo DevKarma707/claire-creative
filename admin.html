@@ -58,6 +58,15 @@ button.mini { background:#f2f2f2; border:1px solid #ccc; padding:3px 9px; font-s
 #picker img { width:130px; height:88px; object-fit:cover; cursor:pointer; border:1px solid #ddd; }
 #picker img:hover { outline:2px solid #000; }
 #picker img.sel { outline:4px solid #000; outline-offset:2px; }
+#crop { position:fixed; inset:0; background:#fff; z-index:300; overflow-y:auto; padding:30px 3vw; display:none; }
+#crop.open { display:block; }
+#crop .crop-zones { display:grid; grid-template-columns:1.6fr 1fr; gap:20px; margin-top:14px; align-items:start; }
+#crop .crop-box { position:relative; overflow:hidden; background:#f4f4f4; border:1px solid #ddd;
+                  aspect-ratio:1/.57; cursor:grab; touch-action:none; }
+#crop .crop-box.tall { aspect-ratio:1/1; }
+#crop .crop-box:active { cursor:grabbing; }
+#crop .crop-box img { width:100%; height:100%; object-fit:cover; user-select:none; pointer-events:none; }
+@media (max-width:700px){ #crop .crop-zones { grid-template-columns:1fr; } }
 @media (max-width:700px){ .grid2,.grid3{grid-template-columns:1fr} }
 </style>
 </head>
@@ -202,6 +211,32 @@ button.mini { background:#f2f2f2; border:1px solid #ccc; padding:3px 9px; font-s
   <div class="head-row"><h2 id="picker-head">Choisir une photo</h2><button class="b ghost" onclick="closePicker()">Fermer</button></div>
   <div class="grid" id="picker-grid"></div>
 </div>
+<div id="crop">
+  <div class="head-row"><h2>Cadrer la photo</h2><button class="b ghost" onclick="closeCrop()">Fermer</button></div>
+  <p class="muted" style="margin-top:10px">Fais glisser la photo pour choisir ce qui reste visible. Le curseur agrandit ou réduit.
+  « Photo entière » n'en coupe rien : la photo est affichée complète, avec du blanc autour si besoin.</p>
+  <div class="crop-zones">
+    <div>
+      <label>Vignette d'accueil <span class="muted">(format large — c'est là que ça coupe le plus)</span></label>
+      <div class="crop-box" id="crop-card"><img id="crop-card-img" draggable="false"></div>
+    </div>
+    <div>
+      <label>Dans la page du projet</label>
+      <div class="crop-box tall" id="crop-cell"><img id="crop-cell-img" draggable="false"></div>
+    </div>
+  </div>
+  <div class="row" style="margin-top:16px">
+    <label style="margin:0">Zoom</label>
+    <input type="range" id="crop-zoom" min="100" max="250" value="100" style="width:240px" oninput="setCropZoom(this.value)">
+    <span class="muted" id="crop-zoom-val">100 %</span>
+  </div>
+  <p class="row" style="margin-top:16px">
+    <button class="b" onclick="applyCrop()">Appliquer</button>
+    <button class="b ghost" onclick="setCropFit()">Photo entière (ne rien couper)</button>
+    <button class="b ghost" onclick="resetCrop()">Réinitialiser</button>
+  </p>
+</div>
+
 <div id="projpicker">
   <div class="head-row"><h2>Déplacer la photo vers…</h2><button class="b ghost" onclick="closeProjPicker()">Annuler</button></div>
   <div id="projpicker-list" style="margin-top:14px"></div>
@@ -312,6 +347,7 @@ function renderProjects() {
           <div class="tools">
             <button class="mini" onclick="moveImg(${i},${j},-1)">←</button>
             <button class="mini" onclick="moveImg(${i},${j},1)">→</button>
+            <button class="mini" title="Cadrer la photo" onclick="openCrop(${i},${j})">⛶</button>
             <button class="mini" title="Déplacer vers un autre projet" onclick="askMoveTo(${i},${j})">⤴</button>
             <button class="mini" onclick="delImg(${i},${j})">✕</button>
           </div>
@@ -337,6 +373,7 @@ function dropImg(e, proj, to) {
   const [im] = a.splice(dragImg, 1);
   a.splice(to, 0, im);
   if (p.sizes) { const [s] = p.sizes.splice(dragImg, 1); p.sizes.splice(to, 0, s); }
+  if (p.crops) { const [c] = p.crops.splice(dragImg, 1); p.crops.splice(to, 0, c); }
   dragImg = null; markDirty(); renderProjects(); toggleEdit(proj);
 }
 function toggleEdit(i) { const e = document.querySelector(`.card[data-i="${i}"] .edit`); e.hidden = !e.hidden; }
@@ -347,14 +384,81 @@ function moveImg(i, j, d) {
   if (k < 0 || k >= a.length) return;
   [a[j], a[k]] = [a[k], a[j]];
   if (p.sizes) [p.sizes[j], p.sizes[k]] = [p.sizes[k], p.sizes[j]];  /* la taille suit la photo */
+  if (p.crops) [p.crops[j], p.crops[k]] = [p.crops[k], p.crops[j]];  /* le cadrage aussi */
   markDirty(); renderProjects(); toggleEdit(i);
 }
 function delImg(i, j) {
   const p = PROJECTS[i];
   p.images.splice(j, 1);
   if (p.sizes) p.sizes.splice(j, 1);
+  if (p.crops) p.crops.splice(j, 1);
   markDirty(); renderProjects(); toggleEdit(i);
 }
+
+/* ================= cadrage d'une photo =================
+   Les cadres du site sont très larges (vignette d'accueil) : une photo verticale
+   s'y trouve rognée haut et bas. On choisit ici quel point de la photo reste au
+   centre, et de combien on l'agrandit. `crops` est optionnel : sans réglage, le
+   site recadre au centre comme avant. */
+let cropAt = null;   // {proj, img}
+let cropVal = { x: 50, y: 50, z: 1, fit: "cover" };
+
+function cropOf(p, j) { return (p.crops && p.crops[j]) || null; }
+function openCrop(i, j) {
+  cropAt = { proj: i, img: j };
+  const c = cropOf(PROJECTS[i], j);
+  cropVal = { x: c?.x ?? 50, y: c?.y ?? 50, z: c?.z ?? 1, fit: c?.fit || "cover" };
+  const src = PROJECTS[i].images[j];
+  $("#crop-card-img").src = src;
+  $("#crop-cell-img").src = src;
+  $("#crop-zoom").value = Math.round(cropVal.z * 100);
+  paintCrop();
+  $("#crop").classList.add("open");
+}
+function closeCrop() { $("#crop").classList.remove("open"); cropAt = null; }
+function paintCrop() {
+  $("#crop-zoom-val").textContent = Math.round(cropVal.z * 100) + " %";
+  [$("#crop-card-img"), $("#crop-cell-img")].forEach((im) => {
+    im.style.objectFit = cropVal.fit;
+    im.style.objectPosition = `${cropVal.x}% ${cropVal.y}%`;
+    im.style.scale = cropVal.z === 1 ? "" : String(cropVal.z);
+  });
+}
+function setCropZoom(v) { cropVal.z = +v / 100; cropVal.fit = "cover"; paintCrop(); }
+function setCropFit() { cropVal = { x: 50, y: 50, z: 1, fit: "contain" }; $("#crop-zoom").value = 100; paintCrop(); }
+function resetCrop() { cropVal = { x: 50, y: 50, z: 1, fit: "cover" }; $("#crop-zoom").value = 100; paintCrop(); }
+function applyCrop() {
+  const p = PROJECTS[cropAt.proj], j = cropAt.img;
+  const parDefaut = cropVal.x === 50 && cropVal.y === 50 && cropVal.z === 1 && cropVal.fit === "cover";
+  if (parDefaut) {
+    if (p.crops) { p.crops[j] = null; if (p.crops.every((c) => !c)) delete p.crops; }
+  } else {
+    if (!p.crops) p.crops = p.images.map(() => null);
+    while (p.crops.length < p.images.length) p.crops.push(null);
+    p.crops[j] = { ...cropVal };
+  }
+  markDirty(); renderProjects(); toggleEdit(cropAt.proj); closeCrop();
+  toast("Cadrage enregistré — pense à publier");
+}
+/* glisser dans un aperçu = déplacer le point gardé au centre */
+["#crop-card", "#crop-cell"].forEach((sel) => {
+  document.addEventListener("pointerdown", (e) => {
+    const box = e.target.closest(sel);
+    if (!box || cropVal.fit === "contain") return;
+    const r = box.getBoundingClientRect();
+    let lastX = e.clientX, lastY = e.clientY;
+    const move = (ev) => {
+      /* on inverse le sens : tirer la photo vers la gauche montre sa partie droite */
+      cropVal.x = Math.min(100, Math.max(0, cropVal.x - ((ev.clientX - lastX) / r.width) * 100));
+      cropVal.y = Math.min(100, Math.max(0, cropVal.y - ((ev.clientY - lastY) / r.height) * 100));
+      lastX = ev.clientX; lastY = ev.clientY;
+      paintCrop();
+    };
+    const up = () => { document.removeEventListener("pointermove", move); document.removeEventListener("pointerup", up); };
+    document.addEventListener("pointermove", move);
+    document.addEventListener("pointerup", up);
+  });
+});
 
 /* ---- place de chaque photo dans la page du projet ----
    `sizes` est optionnel : un projet sans ce champ garde la mise en page
@@ -393,6 +497,7 @@ function addImgs(i, files) {
       uploads.push({ path, base64: data.split(",")[1] });
       PROJECTS[i].images.push(path);
       if (PROJECTS[i].sizes) PROJECTS[i].sizes.push("");
+      if (PROJECTS[i].crops) PROJECTS[i].crops.push(null);
       markDirty(); renderProjects(); toggleEdit(i);
       URL.revokeObjectURL(img.src);
       toast("Photo ajoutée — sera envoyée à la publication");
@@ -408,6 +513,7 @@ function importJSON() {
       id: p.id || "projet-" + Date.now(), service: p.service || SERVICES[0].slug,
       client: p.client || null, title: p.title || ["Sans titre"], images: p.images || [],
       ...(Array.isArray(p.sizes) && p.sizes.some(Boolean) ? { sizes: p.sizes } : {}),
+      ...(Array.isArray(p.crops) && p.crops.some(Boolean) ? { crops: p.crops } : {}),
     }));
     $("#import-json").value = "";
     markDirty(); renderProjects();
@@ -643,9 +749,12 @@ function doMoveTo(t) {
   const src = PROJECTS[proj], dst = PROJECTS[t];
   const [im] = src.images.splice(img, 1);
   const taille = src.sizes ? src.sizes.splice(img, 1)[0] : "";
+  const cadrage = src.crops ? src.crops.splice(img, 1)[0] : null;
   dst.images.push(im);
   if (taille) { if (!dst.sizes) dst.sizes = dst.images.map(() => ""); dst.sizes[dst.images.length - 1] = taille; }
   else if (dst.sizes) dst.sizes.push("");
+  if (cadrage) { if (!dst.crops) dst.crops = dst.images.map(() => null); dst.crops[dst.images.length - 1] = cadrage; }
+  else if (dst.crops) dst.crops.push(null);
   closeProjPicker();
   markDirty(); renderProjects(); toggleEdit(t);
   toast("Photo déplacée vers « " + PROJECTS[t].title.join(" — ") + " »");
