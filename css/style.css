@@ -390,6 +390,8 @@ body.has-field { overflow: hidden; height: 100svh; }
   width: 100%; height: 100%; object-fit: cover;
   pointer-events: none;
 }
+/* légende sous la carte : réservée aux petits écrans (pas de survol au doigt) */
+.fcard-title { display: none; }
 
 #field.dimmed .fcard { filter: blur(7px); }
 #field.dimmed .fcard.hot { filter: none; z-index: 10; }
@@ -576,6 +578,30 @@ html.intro-on #loader { display: none !important; }
   nav.main a { font-size: clamp(19px, 5.6vw, 26px); }
   .service { grid-template-columns: 40px 1fr; }
   .service p { grid-column: 2; }
+  /* pas de survol au doigt : chaque carte porte son nom, en petit, juste dessous.
+     Posé en absolu sous la carte pour ne pas décaler la grille. */
+  .fcard-title {
+    display: block;
+    position: absolute; top: 100%; left: 0; right: 0;
+    padding-top: 7px;
+    font-size: 9.5px; letter-spacing: 0.09em; line-height: 1.35;
+    text-transform: uppercase; pointer-events: none;
+  }
+  .fcard-title b { font-weight: 700; color: var(--ink); }
+  /* le complément est coupé à deux lignes : une légende à rallonge ne doit
+     jamais venir toucher la carte du dessous */
+  .fcard-title i {
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    font-style: normal; font-weight: 400; color: var(--ink-soft);
+  }
+
+  /* petit écran : l'inversion de couleurs devient illisible sur les photos.
+     Titre en noir sur un voile blanc — lisible sur photo claire comme sombre. */
+  #field-title {
+    color: var(--ink); mix-blend-mode: normal;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 12px 14px;
+  }
   .about-grid { grid-template-columns: 1fr; }
   .about-imgs { position: static; }
   .client-row small { display: none; }

@@ -49,7 +49,8 @@
     cards = [];
     colH = [];
     layoutParams();
-    const gapY = CH * 0.55;
+    /* plus d'air entre les rangées sur petit écran : la légende s'y loge */
+    const gapY = CH * (window.innerWidth <= 860 ? 0.78 : 0.55);
     const rows = Math.ceil(current.length / COLS);
     // espace blanc au chargement : sous le menu complet
     const firstOffset = Math.max(window.innerHeight * 0.42, header.offsetHeight + 30);
@@ -62,7 +63,12 @@
       el.className = "fcard";
       el.style.width = CW + "px";
       el.style.height = CH + "px";
-      el.innerHTML = `<img src="${project.images[0]}" loading="lazy" draggable="false" alt="${project.title.join(" — ")}">`;
+      /* le titre sous la carte ne sert qu'aux petits écrans, où il n'y a pas de
+         survol : il est posé en dessous sans entrer dans le calcul des positions */
+      const [nom, ...reste] = project.title;
+      el.innerHTML =
+        `<img src="${project.images[0]}" loading="lazy" draggable="false" alt="${project.title.join(" — ")}">` +
+        `<span class="fcard-title"><b>${nom}</b>${reste.length ? `<i>${reste.join(" — ")}</i>` : ""}</span>`;
       el.dataset.i = i;
       field.appendChild(el);
       cards.push({
