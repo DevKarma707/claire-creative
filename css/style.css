@@ -114,7 +114,8 @@ nav.main button {
   text-transform: uppercase; letter-spacing: -0.01em;
   cursor: pointer; text-align: left;
 }
-nav.main button:hover { animation: navblink 0.2s ease-in-out infinite; }
+nav.main button { transition: transform 0.4s var(--ease); }
+nav.main button:hover { transform: translateX(18px); }
 /* bouton … : révèle À propos / Clients / Contact (précédés d'un tiret, comme la référence) */
 .nav-dots {
   pointer-events: auto;
@@ -154,10 +155,11 @@ nav.main.client-mode .cats, nav.main.client-mode .nav-dots, nav.main.client-mode
   text-transform: uppercase; letter-spacing: -0.01em;
   color: var(--ink);
 }
-#clients-overlay a:hover { animation: navblink 0.2s ease-in-out infinite; }
+/* survol : le mot glisse vers la droite (remplace l'ancien clignotement) */
+#clients-overlay a, nav.main a { transition: transform 0.4s var(--ease); }
+#clients-overlay a:hover, nav.main a:hover { transform: translateX(18px); }
 #clients-overlay .off { color: rgba(0, 0, 0, 0.22); cursor: default; }
-nav.main a:hover { animation: navblink 0.2s ease-in-out infinite; }
-@keyframes navblink { 50% { opacity: 0; } }
+#clients-overlay .off:hover { transform: none; }
 nav.main a .x {
   display: none;
   font-size: 0.55em; vertical-align: 0.28em; margin-left: 0.25em;
@@ -424,7 +426,8 @@ body.has-field { overflow: hidden; height: 100svh; }
   background: none; border: 0; color: #fff; cursor: pointer;
   font-size: clamp(22px, 2.6vw, 34px); line-height: 1; padding: 4px;
 }
-#project-overlay .po-close:hover { animation: navblink 0.2s ease-in-out infinite; }
+#project-overlay .po-close { transition: transform 0.3s var(--ease); }
+#project-overlay .po-close:hover { transform: scale(1.25); }
 /* bento : mosaïque dense qui absorbe les formats paysage/portrait mélangés */
 #project-overlay .po-images {
   display: grid;
