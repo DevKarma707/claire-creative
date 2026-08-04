@@ -69,6 +69,7 @@ button.mini { background:#f2f2f2; border:1px solid #ccc; padding:3px 9px; font-s
 <nav class="tabs">
   <button data-tab="projets" class="on">Projets</button>
   <button data-tab="clients">Clients</button>
+  <button data-tab="apropos">Page « À propos »</button>
   <button data-tab="trail">Traînée « À propos »</button>
   <button data-tab="import">Import JSON</button>
   <button data-tab="blog">Journal / Blog</button>
@@ -91,6 +92,29 @@ button.mini { background:#f2f2f2; border:1px solid #ccc; padding:3px 9px; font-s
       <input type="text" id="new-client" placeholder="Nom du client (ex. Hermès)" style="max-width:320px">
       <button class="b ghost" onclick="addClient()">+ Ajouter</button>
     </div>
+  </section>
+
+  <section id="tab-apropos" hidden>
+    <h2>Texte de la page « À propos »</h2>
+    <p class="muted">Le texte de présentation du studio, en français puis en anglais. Une ligne vide sépare deux paragraphes.
+    Pour mettre un passage en gras, entoure-le de deux étoiles : <code>**comme ceci**</code>.<br>
+    « Publier la page » met à jour <a href="about.html" target="_blank">about.html</a> tout de suite — indépendant du bouton « Publier » des projets.</p>
+
+    <label>Français</label>
+    <textarea id="ab-fr" rows="14"></textarea>
+    <label>English</label>
+    <textarea id="ab-en" rows="12"></textarea>
+
+    <h2>Clients affichés sur la page</h2>
+    <p class="muted">Ces lignes viennent de l'onglet « Clients ». Le secteur (Maison, Mode, Joaillerie…) s'ajoute ici et n'apparaît que sur cette page.</p>
+    <div id="ab-clients"></div>
+
+    <p style="margin-top:16px" class="row">
+      <button class="b" id="ab-publish" onclick="publishAbout()">Publier la page « À propos »</button>
+      <button class="b ghost" onclick="previewAbout()">Voir le rendu avant publication</button>
+      <span class="muted" id="ab-status"></span>
+    </p>
+    <div id="ab-preview" class="card" hidden></div>
   </section>
 
   <section id="tab-trail" hidden>
@@ -233,7 +257,10 @@ async function load() {
   const mod = new Function(src + ";return {SERVICES, CLIENTS, PROJECTS, TRAIL: typeof TRAIL === 'undefined' ? [] : TRAIL};")();
   SERVICES = mod.SERVICES; CLIENTS = mod.CLIENTS; PROJECTS = mod.PROJECTS; TRAIL = mod.TRAIL;
   try { blog = await (await fetch("data/blog.json?nocache=" + Date.now())).json(); } catch (_) { blog = []; }
-  renderProjects(); renderClients(); renderTrail(); renderArticles();
+  try { about = await (await fetch("data/about.json?nocache=" + Date.now())).json(); } catch (_) { about = { fr: "", en: "" }; }
+  $("#ab-fr").value = about.fr || "";
+  $("#ab-en").value = about.en || "";
+  renderProjects(); renderClients(); renderTrail(); renderAboutClients(); renderArticles();
   $("#token").value = token();
   $("#status").textContent = token() ? "token enregistré ✓" : "⚠ pas de token (Réglages)";
 }
@@ -395,10 +422,9 @@ function addClient() {
   if (!label) return;
   const slug = slugify(label);
   if (CLIENTS.some((c) => c.slug === slug)) return toast("Ce client existe déjà");
-  CLIENTS.push({ slug, label });
-  CLIENTS.sort((a, b) => a.label.localeCompare(b.label, "fr"));
+  CLIENTS.push({ slug, label });   /* pas de tri : l'ordre est choisi à la main dans « Page À propos » */
   $("#new-client").value = "";
-  markDirty(); renderClients(); renderProjects();
+  markDirty(); renderClients(); renderProjects(); renderAboutClients();
 }
 function delClient(i) {
   const c = CLIENTS[i];
@@ -406,7 +432,7 @@ function delClient(i) {
   if (used && !confirm(c.label + " est rattaché à " + used + " projet(s), qui passeront en « privé ». Continuer ?")) return;
   PROJECTS.forEach((p) => { if (p.client === c.slug) p.client = null; });
   CLIENTS.splice(i, 1);
-  markDirty(); renderClients(); renderProjects();
+  markDirty(); renderClients(); renderProjects(); renderAboutClients();
 }
 
 /* ================= traînée « À propos » ================= */
@@ -436,6 +462,93 @@ function dropTrail(e, to) {
 function clearTrail() {
   if (!TRAIL.length || !confirm("Retirer les " + TRAIL.length + " photos de la traînée ? Le site reprendra la sélection automatique.")) return;
   TRAIL = []; markDirty(); renderTrail();
+}
+
+/* ================= page « À propos » =================
+   Le texte reste écrit en dur dans about.html — c'est ce que lisent Google et
+   les visiteurs sans JavaScript. L'admin garde la source dans data/about.json
+   et réécrit seulement les blocs entre repères dans la page. */
+let about = { fr: "", en: "" };
+
+const echapper = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+/* **gras** → <strong> ; une ligne vide → un nouveau paragraphe */
+function enParagraphes(texte, indent) {
+  return texte.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean)
+    .map((p) => indent + "<p>" + echapper(p).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/\n/g, "<br>") + "</p>")
+    .join("\n");
+}
+function aboutHTML() {
+  const i = "      ";
+  const fr = enParagraphes($("#ab-fr").value, i);
+  const en = enParagraphes($("#ab-en").value, i);
+  return fr + (en ? `\n\n${i}<p class="lang-title">— English</p>\n` + en : "");
+}
+function clientsHTML() {
+  const i = "      ";
+  return CLIENTS.filter((c) => c.onAbout !== false)
+    .map((c) => `${i}<div class="client-row"><span>${echapper(c.label)}</span><small>${echapper(c.sector || "")}</small></div>`)
+    .join("\n");
+}
+function renderAboutClients() {
+  $("#ab-clients").innerHTML = CLIENTS.map((c, i) => `
+    <div class="row" style="margin-bottom:6px">
+      <button class="mini" title="Monter" onclick="moveClient(${i},-1)">↑</button>
+      <button class="mini" title="Descendre" onclick="moveClient(${i},1)">↓</button>
+      <label style="margin:0"><input type="checkbox" ${c.onAbout === false ? "" : "checked"} onchange="CLIENTS[${i}].onAbout=this.checked;markDirty()"> afficher</label>
+      <b style="min-width:220px">${c.label}</b>
+      <input type="text" placeholder="secteur (ex. Joaillerie)" value="${c.sector || ""}"
+             style="max-width:240px" onchange="CLIENTS[${i}].sector=this.value.trim();markDirty()">
+    </div>`).join("");
+}
+/* l'ordre sert à la fois à cette page et au menu « Clients » du site */
+function moveClient(i, d) {
+  const j = i + d;
+  if (j < 0 || j >= CLIENTS.length) return;
+  [CLIENTS[i], CLIENTS[j]] = [CLIENTS[j], CLIENTS[i]];
+  markDirty(); renderAboutClients(); renderClients();
+}
+function previewAbout() {
+  const p = $("#ab-preview");
+  p.hidden = false;
+  p.innerHTML = `<div style="max-width:640px">${aboutHTML()}</div>
+    <hr style="margin:16px 0"><b style="font-size:12px;text-transform:uppercase;letter-spacing:.15em">Clients</b>
+    <div style="margin-top:8px">${clientsHTML().replace(/<div class="client-row"><span>(.*?)<\/span><small>(.*?)<\/small><\/div>/g,
+      '<div style="display:flex;justify-content:space-between;border-bottom:1px solid #eee;padding:4px 0"><span>$1</span><small style="color:#888">$2</small></div>')}</div>`;
+  p.scrollIntoView({ block: "nearest" });
+}
+async function publishAbout() {
+  if (!token()) return toast("Ajoute d'abord ton token dans Réglages");
+  const btn = $("#ab-publish"); btn.disabled = true;
+  const st = $("#ab-status"); st.textContent = "Publication…"; st.className = "muted";
+  try {
+    about = { fr: $("#ab-fr").value, en: $("#ab-en").value };
+    /* on repart du about.html en ligne pour ne réécrire que les deux blocs */
+    const r = await gh("about.html?ref=main&t=" + Date.now());
+    if (r.status === 404) throw new Error("about.html introuvable sur GitHub");
+    const src = decodeURIComponent(escape(atob((await r.json()).content.replace(/\n/g, ""))));
+
+    const bloc = (html, nom, contenu) => {
+      const re = new RegExp(`(<!-- ABOUT:${nom}:DEBUT[^>]*-->)[\\s\\S]*?(<!-- ABOUT:${nom}:FIN -->)`);
+      if (!re.test(html)) throw new Error(`repère ${nom} absent de about.html`);
+      return html.replace(re, `$1\n${contenu}\n      $2`);
+    };
+    const stamp = "apropos-" + Date.now();
+    let out = bloc(src, "TEXTE", aboutHTML());
+    out = bloc(out, "CLIENTS", clientsHTML());
+    out = out.replace(/<meta name="generator"[^>]*>\s*/g, "").replace("</head>", `  <meta name="generator" content="${stamp}">\n</head>`);
+
+    await putFile("data/about.json", b64(JSON.stringify(about, null, 1)), "Admin : texte À propos (source)");
+    await putFile("js/projects.js", b64(serialize()), "Admin : secteurs des clients");
+    await putFile("about.html", b64(out), "Admin : page À propos");
+    st.innerHTML = "Publié ✓ — déploiement en cours…";
+    toast("Page À propos publiée ✓");
+    const ok = await waitLive(SITE + "about.html", stamp, (i) => { st.textContent = "Déploiement en cours… (" + (i + 1) * 10 + "s)"; });
+    st.innerHTML = ok ? '<span class="ok">En ligne ✓ — <a href="about.html" target="_blank">voir la page</a></span>' : "Publié ✓ (visible d'ici quelques minutes)";
+  } catch (e) {
+    st.textContent = "Erreur : " + e.message; st.className = "err";
+    toast("Erreur : " + e.message);
+  }
+  btn.disabled = false;
 }
 
 /* ================= publication projets ================= */
@@ -620,7 +733,7 @@ async function testToken() {
 document.querySelectorAll("nav.tabs button").forEach((b) => b.addEventListener("click", () => {
   document.querySelectorAll("nav.tabs button").forEach((x) => x.classList.remove("on"));
   b.classList.add("on");
-  ["projets", "clients", "trail", "import", "blog", "reglages"].forEach((t) => $("#tab-" + t).hidden = t !== b.dataset.tab);
+  ["projets", "clients", "apropos", "trail", "import", "blog", "reglages"].forEach((t) => $("#tab-" + t).hidden = t !== b.dataset.tab);
 }));
 window.addEventListener("beforeunload", (e) => { if (dirty) e.preventDefault(); });
 load();
