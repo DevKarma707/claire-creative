@@ -20,6 +20,7 @@
   let colH = [0, 0];
   let scroll = 0, target = 0;
   let hovered = null;
+  let titleW = 0, titleH = 0;   // taille du titre survolé, mesurée à l'entrée
   let current = [];      // projets filtrés courants
   let CW = 0, CH = 0;
   let COLS = 2;
@@ -94,8 +95,13 @@
           `translate3d(${Math.round(c.baseX + c.hx)}px, ${Math.round(y + c.hy)}px, 0) scale(${c.hs.toFixed(3)})`;
       }
       if (c === hovered) {
-        titleEl.style.left = c.baseX + c.hx + CW / 2 + "px";
-        titleEl.style.top = y + c.hy + CH / 2 + "px";
+        /* le titre est centré sur la carte, mais il ne doit jamais sortir de
+           l'écran : sur une carte près d'un bord, on le ramène à l'intérieur */
+        const hw = titleW / 2, hh = titleH / 2, m = 16;
+        const cx = c.baseX + c.hx + CW / 2;
+        const cy = y + c.hy + CH / 2;
+        titleEl.style.left = Math.min(Math.max(cx, hw + m), innerWidth - hw - m) + "px";
+        titleEl.style.top = Math.min(Math.max(cy, hh + m), vh - hh - m) + "px";
       }
     }
     requestAnimationFrame(tick);
@@ -125,6 +131,10 @@
     }
     titleEl.innerHTML = card.project.title.join("<br>");
     titleEl.style.display = "block";
+    /* mesuré une seule fois par survol : la boucle d'animation ne doit pas
+       relire la taille à chaque image */
+    titleW = titleEl.offsetWidth;
+    titleH = titleEl.offsetHeight;
   }
 
   function leave() {

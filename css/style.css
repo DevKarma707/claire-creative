@@ -398,10 +398,10 @@ body.has-field { overflow: hidden; height: 100svh; }
   transform: translate(-50%, -50%);
   pointer-events: none;
   font-family: var(--sans); font-weight: 800;
-  font-size: 30px; line-height: 1.05;
+  font-size: clamp(20px, 3.6vw, 30px); line-height: 1.05;
   text-align: center; text-transform: uppercase;
   color: #fff; mix-blend-mode: difference;
-  width: 480px;
+  width: min(480px, calc(100vw - 32px));
 }
 /* ---------- overlay projet : l'image s'agrandit, on scrolle les images du projet ---------- */
 #project-overlay {
