@@ -21,7 +21,10 @@
       const el = document.createElement("img");
       el.src = src;
       el.alt = "";
-      el.loading = i < 4 ? "eager" : "lazy";
+      /* toutes chargées d'avance : sinon la première photo survolée arrive vide.
+         Les suivantes en priorité basse, pour ne pas retarder l'affichage. */
+      el.loading = "eager";
+      if (i >= 4) el.fetchPriority = "low";
       el.dataset.status = "inactive";
       host.insertBefore(el, copy);
       return el;

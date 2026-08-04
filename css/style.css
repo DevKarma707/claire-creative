@@ -536,9 +536,11 @@ body.po-open #field { pointer-events: none; }
 #intro:focus { outline: none; }
 #intro.out { opacity: 0; transform: scale(1.07); pointer-events: none; }
 #intro .trail-copy { display: grid; justify-items: center; gap: 3vh; }
+/* Dela Gothic One : la police du nom sur le site d'origine de Claire */
 #intro .intro-name {
-  font-weight: 800;
-  font-size: clamp(46px, 12vw, 190px); line-height: 0.9;
+  font-family: "Dela Gothic One", var(--sans);
+  font-weight: 400;
+  font-size: clamp(38px, 10vw, 156px); line-height: 1.02;
   text-transform: uppercase; letter-spacing: -0.02em;
 }
 /* yeux en blanc : le blend difference les rend noirs sur fond blanc */
