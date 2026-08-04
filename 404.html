@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Page introuvable — Claire Creative</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="assets/logo-yeux.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=20260804a">
+  <style>
+    .oops { min-height: 74svh; display: grid; place-content: center; text-align: center; padding: 10vh 4vw; }
+    .oops .eyes { justify-content: center; margin-bottom: 4vh; }
+    .oops .eyes .eye { width: 56px; height: 56px; }
+    .oops h1 { font-size: clamp(38px, 8vw, 110px); line-height: 0.95; text-transform: uppercase; font-weight: 800; letter-spacing: -0.02em; }
+    .oops p { margin-top: 3vh; color: var(--ink-soft); }
+    .oops .back { display: inline-block; margin-top: 5vh; font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; font-weight: 700; border-bottom: 1px solid var(--ink); padding-bottom: 4px; }
+  </style>
+</head>
+<body>
+
+  <section class="oops">
+    <span class="eyes"></span>
+    <h1>Page<br>introuvable</h1>
+    <p>Cette page n'existe pas ou n'existe plus.</p>
+    <a class="back" id="home" href="/claire-creative/">Retour aux projets</a>
+  </section>
+
+  <script>
+    /* la 404 peut s'afficher à n'importe quelle profondeur d'URL : on vise
+       la racine du site, qu'il soit dans un sous-dossier ou sur son domaine */
+    document.getElementById("home").href =
+      location.pathname.startsWith("/claire-creative/") ? "/claire-creative/" : "/";
+  </script>
+  <script src="js/main.js?v=20260804b"></script>
+</body>
+</html>

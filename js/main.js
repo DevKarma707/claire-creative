@@ -39,6 +39,23 @@ window.addEventListener("load", () => {
   if (loader) setTimeout(() => loader.classList.add("done"), 700);
 });
 
+// ---- pages qui défilent : le menu géant se replie quand on descend, revient quand on remonte
+//      (sinon les mots géants se superposent au texte et le rendent illisible).
+//      La page d'accueil ne défile pas : elle a sa propre gestion dans field.js. ----
+(function () {
+  const header = document.querySelector("header");
+  if (!header || document.body.classList.contains("has-field")) return;
+  let last = 0;
+  addEventListener("scroll", () => {
+    const y = window.scrollY;
+    /* seuil de 4 px : à l'arrêt du défilement l'écart est nul, le menu ne doit pas resurgir */
+    if (y < 140) header.classList.remove("nav-hidden");
+    else if (y > last + 4) header.classList.add("nav-hidden");
+    else if (y < last - 4) header.classList.remove("nav-hidden");
+    last = y;
+  }, { passive: true });
+})();
+
 // ---- bouton … du menu : révèle À propos / Clients / Contact ----
 const dots = document.querySelector(".nav-dots");
 if (dots) dots.addEventListener("click", () => dots.closest("nav").classList.toggle("nav-collapsed"));
