@@ -128,7 +128,8 @@ nav.main button:hover { transform: translateX(18px); }
 /* secondaire visible par défaut (comme la référence) ; le bouton … replie tout le menu */
 nav.main .secondary { display: block; margin-top: 4px; }
 nav.main .secondary::before { content: "—"; display: block; font-weight: 700; font-size: clamp(20px, 2vw, 32px); line-height: 1.3; }
-nav.main.nav-collapsed .cats, nav.main.nav-collapsed .secondary { display: none; }
+/* le « … » ne replie que À propos / Clients / Contact ; les catégories restent */
+nav.main.nav-collapsed .secondary { display: none; }
 /* chip client actif : remplace les mentions */
 .client-chip .x { font-size: 0.55em; vertical-align: 0.28em; margin-left: 0.3em; }
 nav.main.client-mode .cats, nav.main.client-mode .nav-dots, nav.main.client-mode .secondary { display: none; }
