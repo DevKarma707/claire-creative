@@ -275,7 +275,10 @@ section { padding: 12vh 4vw; }
 .service p { color: var(--ink-soft); max-width: 480px; }
 
 /* ---------- portfolio teaser (home) ---------- */
-.cats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+/* catégories empilées à gauche, une par ligne : plus de colonnes bancales
+   quand un intitulé est plus court que les autres */
+.cats { display: block; }
+.cats li + li { margin-top: 2px; }
 .cat-card { position: relative; aspect-ratio: 4/5; overflow: hidden; }
 .cat-card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.9s var(--ease), filter 0.5s; }
 .cat-card:hover img { transform: scale(1.06); }
@@ -573,7 +576,6 @@ html.intro-on #loader { display: none !important; }
   nav.main a { font-size: clamp(19px, 5.6vw, 26px); }
   .service { grid-template-columns: 40px 1fr; }
   .service p { grid-column: 2; }
-  .cats { grid-template-columns: 1fr; }
   .about-grid { grid-template-columns: 1fr; }
   .about-imgs { position: static; }
   .client-row small { display: none; }
