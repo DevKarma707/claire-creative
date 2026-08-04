@@ -514,11 +514,6 @@ body.po-open #field { pointer-events: none; }
   font-size: clamp(44px, 9vw, 130px); line-height: 0.95; text-transform: uppercase;
   letter-spacing: -0.01em;
 }
-/* sous-titre : hors de la zone d'images, pour rester lisible */
-.trail-lead {
-  padding: 1vh 4vw 6vh;
-  color: var(--ink-soft); font-size: 16px; max-width: 520px;
-}
 .trail .trail-cue {
   position: absolute; bottom: 26px; left: 50%; transform: translateX(-50%);
   z-index: 60; color: #fff; mix-blend-mode: difference;
@@ -527,9 +522,39 @@ body.po-open #field { pointer-events: none; }
 }
 .trail .trail-cue::before { content: "Déplacez le curseur"; }
 @media (pointer: coarse) { .trail .trail-cue::before { content: "Balayez l'écran"; } }
-/* pas d'effet (aucune photo réglée, ou mouvement réduit) : hero classique */
+/* pas d'effet (aucune photo réglée, ou mouvement réduit) : zone calme */
 .trail.no-trail { min-height: 0; padding: 22vh 4vw 6vh; cursor: auto; }
 .trail.no-trail .trail-cue { display: none; }
+
+/* ---------- voile d'intro (page d'accueil) ---------- */
+#intro {
+  position: fixed; inset: 0; z-index: 2000;
+  min-height: 0; padding: 4vh 4vw;
+  cursor: pointer;
+  transition: opacity 1s var(--ease), transform 1s var(--ease);
+}
+#intro:focus { outline: none; }
+#intro.out { opacity: 0; transform: scale(1.07); pointer-events: none; }
+#intro .trail-copy { display: grid; justify-items: center; gap: 3vh; }
+#intro .intro-name {
+  font-weight: 800;
+  font-size: clamp(46px, 12vw, 190px); line-height: 0.9;
+  text-transform: uppercase; letter-spacing: -0.02em;
+}
+/* yeux en blanc : le blend difference les rend noirs sur fond blanc */
+#intro .eyes .eye { width: 62px; height: 62px; }
+#intro .eyes .eyeball { fill: transparent; stroke: #fff; }
+#intro .eyes .pupil { fill: #fff; }
+#intro .intro-cue {
+  position: absolute; bottom: 5vh; left: 50%; transform: translateX(-50%);
+  z-index: 60; color: #fff; mix-blend-mode: difference;
+  font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase; white-space: nowrap;
+}
+#intro .intro-cue::before { content: "Cliquez pour entrer"; }
+@media (pointer: coarse) { #intro .intro-cue::before { content: "Touchez pour entrer"; } }
+/* pendant l'intro : pas de défilement, et le préchargeur ne sert plus à rien */
+html.intro-on, html.intro-on body { overflow: hidden; }
+html.intro-on #loader { display: none !important; }
 
 /* ---------- responsive ---------- */
 @media (max-width: 860px) {
