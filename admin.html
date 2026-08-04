@@ -70,7 +70,7 @@ button.mini { background:#f2f2f2; border:1px solid #ccc; padding:3px 9px; font-s
   <button data-tab="projets" class="on">Projets</button>
   <button data-tab="clients">Clients</button>
   <button data-tab="apropos">Page « À propos »</button>
-  <button data-tab="trail">Traînée « À propos »</button>
+  <button data-tab="trail">Écran d'accueil</button>
   <button data-tab="import">Import JSON</button>
   <button data-tab="blog">Journal / Blog</button>
   <button data-tab="reglages">Réglages</button>
@@ -105,6 +105,15 @@ button.mini { background:#f2f2f2; border:1px solid #ccc; padding:3px 9px; font-s
     <label>English</label>
     <textarea id="ab-en" rows="12"></textarea>
 
+    <h2>Photos de la page</h2>
+    <p class="muted">Les deux photos affichées à droite du texte. La mise en page est prévue pour deux : la seconde est plus petite et décalée.
+    Le texte alternatif décrit la photo pour Google et pour les personnes qui n'y voient pas.</p>
+    <p class="row" style="margin:12px 0">
+      <button class="b ghost" onclick="openPicker('about')">+ Choisir des photos</button>
+      <span class="muted"><b id="ab-img-count">0</b> photo(s)</span>
+    </p>
+    <div id="ab-images"></div>
+
     <h2>Clients affichés sur la page</h2>
     <p class="muted">Ces lignes viennent de l'onglet « Clients ». Le secteur (Maison, Mode, Joaillerie…) s'ajoute ici et n'apparaît que sur cette page.</p>
     <div id="ab-clients"></div>
@@ -118,14 +127,14 @@ button.mini { background:#f2f2f2; border:1px solid #ccc; padding:3px 9px; font-s
   </section>
 
   <section id="tab-trail" hidden>
-    <h2>Traînée d'images — page « À propos »</h2>
-    <p class="muted">Ces photos apparaissent une par une, sous le curseur, quand le visiteur balaie le haut de la page <a href="about.html" target="_blank">À propos</a>.<br>
+    <h2>Traînée d'images — écran d'accueil</h2>
+    <p class="muted">L'écran d'accueil affiche le nom du studio ; ces photos apparaissent une par une sous le curseur, avant que le visiteur entre sur le site.<br>
     Conseil : 8 à 14 photos bien différentes les unes des autres (couleurs, cadrages, ambiances) — c'est le contraste entre elles qui rend l'effet beau. L'ordre est celui d'apparition.<br>
     Si tu ne choisis rien, le site prend automatiquement la photo de couverture des 12 premiers projets. La mise en ligne se fait avec le bouton « Publier » en bas.</p>
     <p class="row" style="margin:14px 0">
       <button class="b ghost" onclick="openPicker('trail')">+ Choisir des photos</button>
       <button class="b ghost" onclick="clearTrail()">Tout retirer</button>
-      <span class="muted"><b id="trail-count">0</b> photo(s) — <a href="about.html" target="_blank">voir la page</a></span>
+      <span class="muted"><b id="trail-count">0</b> photo(s) — <a href="index.html?intro" target="_blank">revoir l'écran d'accueil</a></span>
     </p>
     <div class="thumbs" id="trail-thumbs"></div>
   </section>
@@ -260,7 +269,7 @@ async function load() {
   try { about = await (await fetch("data/about.json?nocache=" + Date.now())).json(); } catch (_) { about = { fr: "", en: "" }; }
   $("#ab-fr").value = about.fr || "";
   $("#ab-en").value = about.en || "";
-  renderProjects(); renderClients(); renderTrail(); renderAboutClients(); renderArticles();
+  renderProjects(); renderClients(); renderTrail(); renderAboutImages(); renderAboutClients(); renderArticles();
   $("#token").value = token();
   $("#status").textContent = token() ? "token enregistré ✓" : "⚠ pas de token (Réglages)";
 }
@@ -483,6 +492,35 @@ function aboutHTML() {
   const en = enParagraphes($("#ab-en").value, i);
   return fr + (en ? `\n\n${i}<p class="lang-title">— English</p>\n` + en : "");
 }
+function imagesHTML() {
+  const i = "      ";
+  return (about.images || [])
+    .map((im) => `${i}<img src="${im.src}" alt="${echapper(im.alt || "Claire Creative")}" loading="lazy">`)
+    .join("\n");
+}
+function renderAboutImages() {
+  const list = about.images || [];
+  $("#ab-img-count").textContent = list.length;
+  $("#ab-images").innerHTML = list.length
+    ? list.map((im, i) => `
+      <div class="row" style="margin-bottom:8px">
+        <img src="${im.src}" style="width:110px;height:74px;object-fit:cover;border:1px solid #ddd">
+        <input type="text" placeholder="texte alternatif (ce que montre la photo)" value="${(im.alt || "").replace(/"/g, "&quot;")}"
+               style="max-width:380px" onchange="about.images[${i}].alt=this.value.trim()">
+        <button class="mini" onclick="moveAboutImg(${i},-1)">←</button>
+        <button class="mini" onclick="moveAboutImg(${i},1)">→</button>
+        <button class="mini" onclick="delAboutImg(${i})">✕</button>
+      </div>`).join("")
+    : '<p class="muted">Aucune photo — la partie droite de la page restera vide.</p>';
+}
+function moveAboutImg(i, d) {
+  const a = about.images, j = i + d;
+  if (!a || j < 0 || j >= a.length) return;
+  [a[i], a[j]] = [a[j], a[i]];
+  renderAboutImages();
+}
+function delAboutImg(i) { about.images.splice(i, 1); renderAboutImages(); }
+
 function clientsHTML() {
   const i = "      ";
   return CLIENTS.filter((c) => c.onAbout !== false)
@@ -510,7 +548,11 @@ function moveClient(i, d) {
 function previewAbout() {
   const p = $("#ab-preview");
   p.hidden = false;
-  p.innerHTML = `<div style="max-width:640px">${aboutHTML()}</div>
+  p.innerHTML = `<div style="display:flex;gap:20px;align-items:flex-start">
+      <div style="max-width:640px;flex:1">${aboutHTML()}</div>
+      <div style="display:grid;gap:10px;width:190px">${(about.images || []).map((im) =>
+        `<img src="${im.src}" style="width:100%;aspect-ratio:4/5;object-fit:cover">`).join("")}</div>
+    </div>
     <hr style="margin:16px 0"><b style="font-size:12px;text-transform:uppercase;letter-spacing:.15em">Clients</b>
     <div style="margin-top:8px">${clientsHTML().replace(/<div class="client-row"><span>(.*?)<\/span><small>(.*?)<\/small><\/div>/g,
       '<div style="display:flex;justify-content:space-between;border-bottom:1px solid #eee;padding:4px 0"><span>$1</span><small style="color:#888">$2</small></div>')}</div>`;
@@ -521,7 +563,7 @@ async function publishAbout() {
   const btn = $("#ab-publish"); btn.disabled = true;
   const st = $("#ab-status"); st.textContent = "Publication…"; st.className = "muted";
   try {
-    about = { fr: $("#ab-fr").value, en: $("#ab-en").value };
+    about = { fr: $("#ab-fr").value, en: $("#ab-en").value, images: about.images || [] };
     /* on repart du about.html en ligne pour ne réécrire que les deux blocs */
     const r = await gh("about.html?ref=main&t=" + Date.now());
     if (r.status === 404) throw new Error("about.html introuvable sur GitHub");
@@ -534,6 +576,7 @@ async function publishAbout() {
     };
     const stamp = "apropos-" + Date.now();
     let out = bloc(src, "TEXTE", aboutHTML());
+    out = bloc(out, "IMAGES", imagesHTML());
     out = bloc(out, "CLIENTS", clientsHTML());
     out = out.replace(/<meta name="generator"[^>]*>\s*/g, "").replace("</head>", `  <meta name="generator" content="${stamp}">\n</head>`);
 
@@ -615,9 +658,14 @@ let pickerTarget = "cover";
 function openPicker(target) {
   pickerTarget = target || "cover";
   const trail = pickerTarget === "trail";
-  $("#picker-head").textContent = trail ? "Photos de la traînée — clique pour ajouter ou retirer" : "Choisir une photo";
+  const apropos = pickerTarget === "about";
+  $("#picker-head").textContent =
+    trail ? "Photos de l'écran d'accueil — clique pour ajouter ou retirer"
+    : apropos ? "Photos de la page À propos — clique pour ajouter ou retirer"
+    : "Choisir une photo";
+  const dejaLa = apropos ? (about.images || []).map((im) => im.src) : TRAIL;
   $("#picker-grid").innerHTML = [...new Set(PROJECTS.flatMap((p) => p.images))]
-    .map((im) => `<img src="${im}" loading="lazy" class="${trail && TRAIL.includes(im) ? "sel" : ""}" onclick="pick('${im}')">`).join("");
+    .map((im) => `<img src="${im}" loading="lazy" class="${(trail || apropos) && dejaLa.includes(im) ? "sel" : ""}" onclick="pick('${im}')">`).join("");
   $("#picker").classList.add("open");
 }
 function closePicker() { $("#picker").classList.remove("open"); }
@@ -626,6 +674,13 @@ function pick(im) {
     const i = TRAIL.indexOf(im);
     if (i >= 0) TRAIL.splice(i, 1); else TRAIL.push(im);
     markDirty(); renderTrail(); openPicker("trail");
+    return;
+  }
+  if (pickerTarget === "about") {
+    if (!about.images) about.images = [];
+    const i = about.images.findIndex((x) => x.src === im);
+    if (i >= 0) about.images.splice(i, 1); else about.images.push({ src: im, alt: "" });
+    renderAboutImages(); openPicker("about");
     return;
   }
   $("#a-cover").value = im;
